@@ -1,0 +1,13 @@
+\name{pcr_result1}
+\alias{pcr_result1}
+\docType{data}
+\title{
+pcr_result1
+}
+\description{
+pcr_result1
+}
+\examples{
+data(pcr_result1)
+}
+\keyword{datasets}

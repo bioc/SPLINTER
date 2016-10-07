@@ -1,0 +1,256 @@
+---
+title: "SPLINTER"
+subtitle: "SPLice INTERpreter: Alternative splicing analysis toolkit"
+author: "Diana Low"
+date: "`r doc_date()`"
+package: "`r pkg_ver('SPLINTER')`"
+abstract:
+vignette: >
+  %\VignetteIndexEntry{SPLINTER}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+output: 
+  BiocStyle::pdf_document
+---
+\pagebreak
+
+# Introduction
+SPLINTER provides tools to analyze alternative splicing sites, interpret outcomes based on sequence information, select and design primers for site validiation and give visual representation of the event to guide downstream experiments.
+
+# Loading the package
+To load the `r Biocpkg("SPLINTER")` package:
+```{r}
+library(SPLINTER)
+```
+
+# Initializing the genome for transcript selection
+In this example, we will be utilizing the mm9 genome for mouse. You will need to install the
+appropriate package (eg. `r Biocpkg("BSgenome.Mmusculus.UCSC.mm9")`) for the genome
+that you will be using.
+
+```{r, message=FALSE}
+library(BSgenome.Mmusculus.UCSC.mm9)
+library(GenomicFeatures)
+bsgenome <- BSgenome.Mmusculus.UCSC.mm9
+```
+
+We begin with full set of available transcripts to screen from, and read it into a \Rclass{TxDb} object. 
+One source of this (best option to ensure compatibility) would be the GTF file that you have used for 
+alternative splicing analysis. For other sources of data, please refer to `r Biocpkg("GenomicFeatures")`).
+
+We then extract the coding sequences (CDS), and transcripts in general (coding and non-coding) (exons) from this
+object.
+```{r,message=FALSE}
+data_path<-system.file("extdata",package="SPLINTER")
+gtf_file<-paste(data_path,"/Mus_musculus.Ensembl.NCBIM37.65.partial.gtf",sep="")
+txdb <- makeTxDbFromGFF(file=gtf_file,chrominfo = Seqinfo(genome="mm9"))
+
+# txdb generation can take quite long, you can save the object and load it the next time
+# saveDb(txdb,file="txdb_hg19.sqlite")
+# txdb<-loadDb(file="txdb_hg19.sqlite")
+
+# extract CDS and exon information from TxDb object
+thecds<-cdsBy(txdb,by="tx",use.names=TRUE)
+theexons<-exonsBy(txdb,by="tx",use.names=TRUE)
+```
+
+# Reading in the splicing analysis file
+The output file from [MATS](http://rnaseq-mats.sourceforge.net/) is used here,
+but essentially all that is needed are coordinates of the exons (target and flanking) involved in the 
+splicing processt to be studied. For the case of exon skipping, this will include the upstream, target
+and downstream exons. More output types will be supported in the future.
+
+\pagebreak
+
+The following types of alternative splicing events are accepted:
+
+Type of alternative splicing event | Definition
+------------- | -------------
+SE  | Skipped exon
+RI  | Retained intron
+MXE | Mutually exclusive exon
+A5SS | Alternative 5' splice site
+A3SS | Alternative 3' splice site
+
+```{r}
+typeofAS="SE"
+mats_file<-paste(data_path,"/skipped_exons.txt",sep="")
+splice_data <-extractSpliceEvents(data=mats_file, filetype='mats', splicetype=typeofAS)
+splice_data$data[,c(1:10)]
+```
+
+## Additional annotation
+`r Biocpkg("SPLINTER")` assumes that the main identifier is ENSEMBL, however gene symbols can be added.
+```{r}
+splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
+
+# (Optional) Sorting the dataframe, if you have supporting statistical information
+splice_data$data<-splice_data$data[with(splice_data$data,order(FDR,-IncLevelDifference)),]
+head(splice_data$data[,c(1:10)])
+```
+\pagebreak
+
+# Analyzing a specific gene
+## Inspecting a single gene in more detail (single record)
+Once we have defined the events, we will pick 1 event to analyze.
+```{r}
+single_id='Prmt5'
+pp<-which(grepl(single_id,splice_data$data$geneSymbol)) # Prmt5 has 1 record
+
+splice_data$data[pp,c(1:6)] # show all records
+
+single_record<-splice_data$data[pp[1],]
+```
+
+## Finding relevant transcripts from the ENSEMBL database
+To reduce search complexity, we define the valid transcripts and coding sequences with 
+regards to our gene of interest. We find that Prmt5 has 7 transcripts, 2 of which are
+coding sequences.
+
+```{r}
+valid_tx <- findTX(id=single_record$GeneID,tx=theexons,db=txdb)
+
+valid_cds<- findTX(id=single_record$GeneID,tx=thecds,db=txdb)
+```
+
+## Constructing the region of interest (ROI)
+The `makeROI` function will create a list containing `GRanges` objects for the splicing event.
+This will help identify and construct relevant outputs later.
+
+This list contains the following information:
+
+- type: type of alternative splicing event
+- name: name of gene
+- roi: GRanges object of the exon
+- flank: GRanges object of the flanking exons
+- roi_range: GRanges list containing
+    * GRanges object of Type 1
+    * GRanges object of Type 2
+
+\pagebreak
+
+Type of alternative splicing  | Type 1 representation | Type 2 representation (annotated only)
+------------------- | ------------------------ | -------------------------
+SE  | isoform with event exon included | isoform with the exon skipped
+RI  | isoform with normal exon boundaries | isoform with the intron retained
+MXE | isoform defined 1st (leftmost) in input | isoform defined 2nd in input
+A5SS | isoform with longer exon | isoform with shorter exon 
+A3SS | isoform with longer exon | isoform with shorter exon 
+
+```{r}
+roi <- makeROI(splice_data,pp[1])
+roi
+```
+
+## Finding transcripts that contain the ROI
+At this juncture, we look for transcripts are compatible with the ROI. Compatibility
+is defined as having the exact cassette (matching upstream, target, downstream) exons.
+In the case of intron retention, this would just be the 2 exons flanking the intron.
+
+We notice here that Prmt5 only has 1 compatible transcript involved in the event ROI, 
+out of 7 transcripts (or 2 coding transcripts). There are no Type 2 transcripts, which
+means there are no annotated transcripts of Prmt5 containing the alternative event.
+```{r}
+compatible_tx<- findCompatibleEvents(valid_tx,roi=roi,verbose=TRUE)
+
+compatible_cds<- findCompatibleEvents(valid_cds,valid_tx,roi=roi,verbose=TRUE)
+
+```
+
+\pagebreak
+
+# Simulating alternatively spliced products
+
+## Simulating the outcome of exon skipping by removing an exonic region 
+```{r}
+region_minus_exon <-removeRegion(compatible_cds$hits[[1]],roi)
+```
+
+## Simulating the outcome of intron retention by inserting an intronic region 
+```{r}
+# Not relevant for this Prmt5 skipped exon example
+region_plus_exon <-insertRegion(region_minus_exon,roi)
+```
+
+## Comparing sequences before and after removal/insertion of a region
+```{r}
+event<-eventOutcomeCompare(seq1=compatible_cds$hits[[1]],seq2=region_minus_exon,
+                    genome=bsgenome,direction=TRUE,fullseq=FALSE)
+
+event
+```
+
+\pagebreak
+
+# Designing primers to inspect splicing regions
+## Getting the DNA of the region of interest
+This function will return the DNA of the ROI, with exons separated by "[]" (Primer3 notation) and the junction marked by `jstart`.
+```{r}
+aa<-getRegionDNA(roi,bsgenome) 
+aa
+```
+
+## Using Primer3 to design primers for alternative splicing identification
+We have included a helper function to run Primer3 from within `R`. You will need
+to define the path to your Primer3 installation. Refer to `?callPrimer3` for more details.
+```{r, eval=FALSE}
+primers<-callPrimer3(seq=aa$seq,sequence_target = aa$jstart,size_range='100-500')
+```
+```{r}
+primers[,c(1:4)]
+```
+
+Alternatively, primers can be entered manually with the appropriate headers.
+```{r}
+primers <- data.frame(PRIMER_LEFT_SEQUENCE="ACTTTCGGACTCTGTGTGACT",
+                      PRIMER_RIGHT_SEQUENCE="TCATAGGCATTGGGTGGAGG",
+                      stringsAsFactors=FALSE)
+```
+
+## Checking primers coverage
+As a confirmation, we can run the primers against the ROI to give the genomic location 
+of the primer coverage.
+```{r}
+cp<-checkPrimer(primers[1,],bsgenome,roi)
+
+cp
+```
+
+## Predicting PCR results using the primers
+`getPCRsizes` will give you the length of the PCR product produced by the set of primers.
+```{r}
+pcr_result1<-getPCRsizes(cp,theexons)
+pcr_result1
+
+tx_minus_exon <-removeRegion(compatible_tx$hits[[1]],roi)
+pcr_result2<-getPCRsizes(cp,tx_minus_exon)
+pcr_result2
+```
+
+### Selecting sizes relevant to splicing event (subset of getPCRsizes)
+While `getPCRsizes` will return all possible PCR products for a given set of annotation,
+`splitPCRhit` will return PCR product sizes that are relevant to the splicing event in question.
+```{r}
+relevant_pcr_bands<-splitPCRhit(pcr_result1,compatible_tx)
+
+relevant_pcr_bands
+```
+
+# Plotting results
+```{r}
+# reading in BAM files
+mt<-paste(data_path,"/mt_chr14.bam",sep="")
+wt<-paste(data_path,"/wt_chr14.bam",sep="")
+
+# Plotting genomic range, read density and splice changes
+eventPlot(transcripts=theexons,roi_plot=roi,bams=c(wt,mt),names=c('wt','mt'),
+          annoLabel=single_id,rspan=2000)
+
+# Barplot of PSI values if provided
+psiPlot(single_record)
+```
+
+# Session info
+```{r sessionInfo, echo=FALSE}
+sessionInfo()
+```

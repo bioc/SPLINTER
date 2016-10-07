@@ -1,0 +1,17 @@
+\name{valid_cds}
+\alias{valid_cds}
+\docType{data}
+\title{
+valid_cds
+}
+\value{
+GRangesList
+}
+\description{
+valid_cds
+}
+\usage{data("valid_cds")}
+\examples{
+data(valid_cds)
+}
+\keyword{datasets}
