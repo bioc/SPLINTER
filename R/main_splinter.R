@@ -748,7 +748,7 @@ findTermination <-function(s1){
 #'  genome=bsgenome,direction=TRUE)
 eventOutcomeCompare <- function(seq1,seq2=NULL,genome,direction=TRUE,fullseq=TRUE){
   #gapOpening=-5; gapExtension=-1
-  gapOpening=-10; gapExtension=-0.5
+  gapOpening=10; gapExtension=0.5
 
   if(is.null(seq2)) seq2<-seq1
   if(direction) esign="+" else esign="-"
