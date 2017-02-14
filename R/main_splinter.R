@@ -583,13 +583,23 @@ makeROI <-function(info,itemnum=1){
 #' extendROI(roi,valid_tx,up=1)
 extendROI<-function(roi,tx,up=0,down=0){
   # 1. find transcripts that has the current event
-  fso<-findSpliceOverlaps(GRangesList(roi$roi),tx)
+  if(roi$type=="SE"){
+    fso<-findSpliceOverlaps(GRangesList(roi$roi),tx)
+  } else if(roi$type=="RI"){
+    fso<-findSpliceOverlaps(GRangesList(roi$roi_range[[1]]),tx)
+  }
 
   # 2. get the transcripts
   vfso<-tx[subjectHits(fso[mcols(fso)$compatible==TRUE])]
 
   # 3. get the exon numbers for the compatible transcripts
-  evfso<-findOverlaps(vfso[[1]],roi$flank)
+  for(i in seq_along(vfso)){
+    evfso<-findOverlaps(vfso[[i]],roi$flank)
+    if(length(evfso)==2) {
+      break
+    }
+  }
+
 
   # 4. check if first/last exon
 

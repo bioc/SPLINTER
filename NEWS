@@ -1,3 +1,11 @@
+SPLINTER v1.1.2 (2017-02-14)
+==============
+
+Changes:
+
+* extendROI now checks all transripts for exact compatibility, chooses first one
+* Primer design corrected for different alternative splicing types
+
 SPLINTER v1.0 (2016-09-22)
 ==============
 

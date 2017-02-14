@@ -100,7 +100,7 @@ splitPCRhit<-function(res,hitlist){
 #' getRegionDNA(roi,bsgenome)
 getRegionDNA<-function(roi,genome,introns=FALSE){
   #get introns
-  if(roi$type %in% c("A5SS","A3SS")){
+  if(roi$type %in% c("A5SS","A3SS","RI")){
     seq_pos=2
   } else {
     seq_pos=1
