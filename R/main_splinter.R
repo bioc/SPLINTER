@@ -59,13 +59,13 @@ extractSpliceEvents <- function(data=NULL,filetype='mats',splicetype='SE',fdr=1,
 #' Extracts and formats to bed the location of target, upstream and downstream
 #' splice sites
 #'
-#' @param file character MATS \url{http://rnaseq-mats.sourceforge.net/} output filename
-#'    or data.frame output from extractSpliceEvents
+#' @param file data.frame output from extractSpliceEvents
 #' @param splicetype character either SE (skipped exon) or RI (retained intron)
 #' @param site character donor or acceptor
 #' @param fdr numeric false discovery rate filter range [0,1]
 #' @param motif_range numeric vector of splice position to extract
 #' @param inclusion numeric fraction,takes absolute value
+#' @param start0 boolean 0-base start
 #'
 #' @return GRanges object
 #'
@@ -78,17 +78,11 @@ extractSpliceEvents <- function(data=NULL,filetype='mats',splicetype='SE',fdr=1,
 #' data_path<-system.file("extdata",package="SPLINTER")
 #' splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
 #' splice_sites<-extractSpliceSites(splice_data$data)
-#'
-#' ## or
-#' #splice_sites<-extractSpliceSites(file=paste(data_path,"/skipped_exons.txt",sep=""))
 extractSpliceSites <- function(file,splicetype='SE',site='donor',
-                               fdr=1,motif_range=c(-3,6),inclusion=0){
-  if(class(file)!="data.frame"){
-    df<-read.table(file, header=TRUE, stringsAsFactors =FALSE)
-    df<-df[df$FDR<=fdr && abs(df$IncLevelDifference)>=inclusion,]
-  } else {
-    df=file
-  }
+                               fdr=1,motif_range=c(-3,6),inclusion=0,start0=TRUE){
+  df=file
+
+  if(start0) base2add=1 else base2add=0
 
   #df[,c(6,8,10)]<-df[,c(6,8,10)]+1 #shift 1 base for certain fields
 
@@ -145,14 +139,16 @@ extractSpliceSites <- function(file,splicetype='SE',site='donor',
   target_exons_neg<-target_exons[strand(target_exons)=="-"]
 
   if(site=='donor'){
+    motif_range=motif_range+1
     start(target_exons_pos)<-end(target_exons_pos)+motif_range[1]
     end(target_exons_pos)<-end(target_exons_pos)+motif_range[2]
-    start(target_exons_neg)<-start(target_exons_neg)-motif_range[2]
-    end(target_exons_neg)<-start(target_exons_neg)-motif_range[1]
+    end(target_exons_neg)<-start(target_exons_neg)-motif_range[1]-base2add
+    start(target_exons_neg)<-start(target_exons_neg)-motif_range[2]-base2add
     target_sites<-c(target_exons_pos,target_exons_neg)
   } else if(site=='acceptor'){
-    start(target_exons_pos)<-start(target_exons_pos)+motif_range[1]
-    end(target_exons_pos)<-start(target_exons_pos)+motif_range[2]
+    motif_range=motif_range-1
+    end(target_exons_pos)<-start(target_exons_pos)+motif_range[2]-base2add
+    start(target_exons_pos)<-start(target_exons_pos)+motif_range[1]-base2add
     start(target_exons_neg)<-end(target_exons_neg)-motif_range[2]
     end(target_exons_neg)<-end(target_exons_neg)-motif_range[1]
     target_sites<-c(target_exons_pos,target_exons_neg)
@@ -182,6 +178,113 @@ plot_seqlogo <-function(fasta_seq){
   freq<-consensusMatrix(fasta_seq,as.prob=TRUE)[1:4,]
   freq<-data.frame(freq)
   seqLogo(makePWM(freq),ic.scale=FALSE) #ic.scale determines either frequency or bits
+}
+
+#' shapiroDonor
+#'
+#' Shapiro and Senapathy (1987) have developed a method to score the strength of a splice site
+#' based on percentages of each nucleotide at each position.
+#' Shapiro's score of donor site (range is from -3 [exon] to +7 [intron]) is :
+#' 100 * (t - min)/ (max - min), where
+#' t is the sum of percentages at positions -3 to +7,
+#' min is the sum of the lowest percentages at positions -3 to +7, and
+#' max is the sum of the highest percentages at positions -3 to +7.
+#' @param target_fasta vector of strings or DNAStringSet of fasta to score
+#' @param reference_fasta vector of strings or DNAStringSet of reference splice list
+#' @returnType numeric vector
+#' @return vector with Shapiro scores
+#' @seealso \url{http://www.softberry.com/spldb/SpliceDB.html}
+#' @import Biostrings
+#'
+#' @author Diana Low
+#' @export
+#'
+#' @author Diana Low
+#'
+#' @examples
+#' library(BSgenome.Mmusculus.UCSC.mm9)
+#' bsgenome <- BSgenome.Mmusculus.UCSC.mm9
+#' data_path<-system.file("extdata",package="SPLINTER")
+#' splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
+#' splice_sites<-extractSpliceSites(splice_data$data)
+#' donor.ss<-getSeq(bsgenome,splice_sites)
+#' sdonor<-shapiroDonor(donor.m,donor.ss)
+shapiroDonor<-function(reference_fasta,target_fasta){
+  if(class(reference_fasta)!="matrix") {
+    rpwm<-as.matrix(read.table(reference_fasta,row.names=1))/100#consensusMatrix(reference_fasta,as.prob=T)[1:4,]
+  } else {
+    rpwm <-reference_fasta/100
+  }
+  minscore<-sum(apply(rpwm,2,min))
+  maxscore<-sum(apply(rpwm,2,max))
+
+  if(class(target_fasta)!="DNAStringSet") target_fasta<-suppressWarnings(readDNAStringSet(target_fasta))
+
+  result<-unlist(lapply(target_fasta,function(x) {
+    t<-PWMscoreStartingAt(rpwm, as.character(x), starting.at=1)
+    score<-(t-minscore)/(maxscore-minscore)*100
+  }))
+  names(result)<-as.character(target_fasta)
+
+  return(result)
+}
+
+#' shapiroAcceptor
+#'
+#' Shapiro's score of acceptor site (range is from -13 [intron] to +1 [exon]) is:
+#' 100 * ((t1 - l1)/(h1 - l1) + (t2 - l2)/(h2 - l2))/2, where
+#' t1 is the sum of the best 8 of 10 percentages at positions -13 to -4,
+#' l1 is the sum of the lowest 8 of 10 percentages at position -13 to -4,
+#' h1 is the sum of the highest 8 of 10 percentages at positions -13 to -4,
+#' t2 is the sum of percentages at positions -3 to +1,
+#' l2 is the sum of the lowest percentages at positions -3 to +1, and
+#' h2 is the sum of the highest percentages at positions -3 to +1
+#'
+#' @param target_fasta vector of strings or DNAStringSet of fasta to score
+#' @param reference_fasta vector of strings or DNAStringSet of reference splice list
+#' @returnType numeric vector
+#' @return vector with Shapiro scores
+#' @seealso \url{http://www.softberry.com/spldb/SpliceDB.html}
+#' @import Biostrings
+#'
+#' @author Diana Low
+#' @export
+#'
+#' @examples
+#' library(BSgenome.Mmusculus.UCSC.mm9)
+#' bsgenome <- BSgenome.Mmusculus.UCSC.mm9
+#' data_path<-system.file("extdata",package="SPLINTER")
+#' splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
+#' splice_sites<-extractSpliceSites(splice_data$data,site="acceptor")
+#' acceptor.ss<-getSeq(bsgenome,splice_sites)
+#' sacceptor<-shapiroAcceptor(acceptor.m,acceptor.ss)
+shapiroAcceptor<-function(reference_fasta,target_fasta){
+  #if(class(reference_fasta)!="DNAStringSet") reference_fasta<-suppressWarnings(readDNAStringSet(reference_fasta))
+  if(class(target_fasta)!="DNAStringSet") target_fasta<-suppressWarnings(readDNAStringSet(target_fasta))
+
+  #consensusMatrix(reference_fasta,as.prob=T)[1:4,]
+  if(class(reference_fasta)!="matrix") {
+    rpwm<-as.matrix(read.table(reference_fasta,row.names=1))/100
+  } else {
+    rpwm <-reference_fasta/100
+  }
+
+  #rpwm<-consensusMatrix(reference_fasta,as.prob=T)[1:4,]
+  tpwm<-consensusMatrix(target_fasta,as.prob=T)[1:4,]
+
+  l1<-sum(sort(apply(rpwm[,1:10],2,min))[1:8])
+  h1<-sum(sort(apply(rpwm[,1:10],2,max),decreasing=TRUE)[1:8])
+  l2<-sum(apply(rpwm[,(ncol(rpwm)-3):ncol(rpwm)],2,min))
+  h2<-sum(apply(rpwm[,(ncol(rpwm)-3):ncol(rpwm)],2,max))
+
+  t1<-sum(sort(apply(tpwm[,1:10],2,max),decreasing=TRUE)[1:8])
+
+  result<-unlist(lapply(target_fasta,function(x) {
+    t2<-PWMscoreStartingAt(tpwm[,(ncol(tpwm)-3):ncol(tpwm)], substr(x,(ncol(tpwm)-3),ncol(tpwm)), starting.at=1)
+    score<-100*((t1 - l1)/(h1 - l1) + (t2 - l2)/(h2 - l2))/2
+  }))
+
+  return(result)
 }
 
 #' makeUniqueIDs

@@ -5,11 +5,10 @@
 \title{extractSpliceSites}
 \usage{
 extractSpliceSites(file, splicetype = "SE", site = "donor", fdr = 1,
-  motif_range = c(-3, 6), inclusion = 0)
+  motif_range = c(-3, 6), inclusion = 0, start0 = TRUE)
 }
 \arguments{
-\item{file}{character MATS \url{http://rnaseq-mats.sourceforge.net/} output filename
-or data.frame output from extractSpliceEvents}
+\item{file}{data.frame output from extractSpliceEvents}
 
 \item{splicetype}{character either SE (skipped exon) or RI (retained intron)}
 
@@ -20,6 +19,8 @@ or data.frame output from extractSpliceEvents}
 \item{motif_range}{numeric vector of splice position to extract}
 
 \item{inclusion}{numeric fraction,takes absolute value}
+
+\item{start0}{boolean 0-base start}
 }
 \value{
 GRanges object
@@ -32,9 +33,6 @@ splice sites
 data_path<-system.file("extdata",package="SPLINTER")
 splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
 splice_sites<-extractSpliceSites(splice_data$data)
-
-## or
-#splice_sites<-extractSpliceSites(file=paste(data_path,"/skipped_exons.txt",sep=""))
 }
 \author{
 Diana Low

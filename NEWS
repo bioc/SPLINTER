@@ -1,3 +1,11 @@
+SPLINTER v1.1.3 (2017-02-17)
+==============
+
+Changes:
+
+* extractSpliceSites is now more flexible for different splice types and sites
+* added shapiroDonor and shapiroAcceptor to calculate Shapiro-Senapathy scores
+
 SPLINTER v1.1.2 (2017-02-14)
 ==============
 
