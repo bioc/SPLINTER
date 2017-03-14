@@ -16,4 +16,3 @@ GRanges or GRangesList
 helper function to remove metadata from GRanges object
 }
 \keyword{internal}
-

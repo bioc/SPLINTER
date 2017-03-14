@@ -38,4 +38,3 @@ pcr_result1 <- getPCRsizes(cp,theexons)
 \author{
 Diana Low
 }
-

@@ -26,4 +26,3 @@ retaining legacy sites by keeping $roi and $flank
 \examples{
 extendROI(roi,valid_tx,up=1)
 }
-

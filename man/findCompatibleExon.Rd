@@ -28,4 +28,3 @@ compatible_exons <- findCompatibleExon(valid_cds,roi)
 \author{
 Diana Low
 }
-

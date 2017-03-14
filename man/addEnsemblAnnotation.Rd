@@ -23,10 +23,9 @@ data_path<-system.file("extdata",package="SPLINTER")
 splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
 splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
 }
-\author{
-Diana Low
-}
 \seealso{
 \url{http://asia.ensembl.org/info/data/biomart/biomart_r_package.html#biomartexamples}
 }
-
+\author{
+Diana Low
+}

@@ -45,4 +45,3 @@ modified to include SEQUENCE_TARGET as an option
 \author{
 Altuna Akalin's modified Arnaud Krebs' original function further modified here by Diana Low
 }
-

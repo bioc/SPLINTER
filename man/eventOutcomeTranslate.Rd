@@ -30,4 +30,3 @@ translation_results<-eventOutcomeTranslate(compatible_cds,genome=bsgenome,
 \author{
 Diana LOW
 }
-

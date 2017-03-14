@@ -27,4 +27,3 @@ valid_cds <-findTX(id=splice_data$data[1,]$GeneID,tx=thecds,db=txdb,valid=FALSE)
 \author{
 Diana Low
 }
-

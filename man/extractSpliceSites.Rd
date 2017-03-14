@@ -34,10 +34,9 @@ data_path<-system.file("extdata",package="SPLINTER")
 splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
 splice_sites<-extractSpliceSites(splice_data$data)
 }
-\author{
-Diana Low
-}
 \seealso{
 \url{http://rnaseq-mats.sourceforge.net/user_guide.htm} for MATS file definition
 }
-
+\author{
+Diana Low
+}

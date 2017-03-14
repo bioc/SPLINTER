@@ -191,8 +191,7 @@ plot_seqlogo <-function(fasta_seq){
 #' max is the sum of the highest percentages at positions -3 to +7.
 #' @param target_fasta vector of strings or DNAStringSet of fasta to score
 #' @param reference_fasta vector of strings or DNAStringSet of reference splice list
-#' @returnType numeric vector
-#' @return vector with Shapiro scores
+#' @return data.frame with Shapiro scores
 #' @seealso \url{http://www.softberry.com/spldb/SpliceDB.html}
 #' @import Biostrings
 #'
@@ -242,8 +241,7 @@ shapiroDonor<-function(reference_fasta,target_fasta){
 #'
 #' @param target_fasta vector of strings or DNAStringSet of fasta to score
 #' @param reference_fasta vector of strings or DNAStringSet of reference splice list
-#' @returnType numeric vector
-#' @return vector with Shapiro scores
+#' @return data.frame with Shapiro scores
 #' @seealso \url{http://www.softberry.com/spldb/SpliceDB.html}
 #' @import Biostrings
 #'
@@ -285,6 +283,25 @@ shapiroAcceptor<-function(reference_fasta,target_fasta){
   }))
 
   return(result)
+}
+
+#' shapiroDensity
+#'
+#' convenience function for plotting Shapiro score density
+#'
+#' @param ctrl_scores output of shapiroDonor or shapiroAcceptor
+#' @param treat_scores output of shapiroDonor or shapiroAcceptor
+#' @param sample samplenames
+#' @author Diana Low
+#'
+#' @import ggplot2
+#' @export
+shapiroDensity<-function(ctrl_scores,treat_scores,sample=c(1,2)){
+  dens<-NULL
+  dat <- data.frame(dens = c(ctrl_scores,treat_scores), feature = c(rep(paste("1:",sample[1]),times=length(ctrl_scores)), rep(paste("2:",sample[2]),times=length(treat_scores))))
+  plt<-ggplot(dat, aes(x = dens, fill = feature))+ geom_density(alpha = 0.9,size=1,adjust=2)+ scale_x_continuous(limits = c(50, 100))+
+    xlab("Shapiro score") +  ylab("Density")+scale_fill_brewer(palette="Set1")+theme_bw(base_size=18)
+  return(plt)
 }
 
 #' makeUniqueIDs

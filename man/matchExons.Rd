@@ -22,4 +22,3 @@ checks if reference and subject matches
 Diana Low
 }
 \keyword{internal}
-

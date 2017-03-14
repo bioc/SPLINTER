@@ -24,4 +24,3 @@ Diana Low
 compatible_cds$hits[[1]]
 region_minus_exon<-removeRegion(compatible_cds$hits[[1]],roi)
 }
-

@@ -42,10 +42,9 @@ for filetype 'custom', coordinates are expected to be in base-1.
 data_path<-system.file("extdata",package="SPLINTER")
 splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
 }
-\author{
-Diana Low
-}
 \seealso{
 \url{http://rnaseq-mats.sourceforge.net/user_guide.htm} for MATS file definition
 }
-
+\author{
+Diana Low
+}

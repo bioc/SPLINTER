@@ -23,4 +23,3 @@ plot_seqlogo(test)
 \author{
 Diana Low
 }
-

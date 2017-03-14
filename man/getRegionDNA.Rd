@@ -30,4 +30,3 @@ getRegionDNA(roi,bsgenome)
 \author{
 Diana Low
 }
-

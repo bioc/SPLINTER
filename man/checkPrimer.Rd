@@ -30,4 +30,3 @@ primer_pair <- data.frame(PRIMER_LEFT_SEQUENCE="agctcttgaaattggagctgac",
 \author{
 Diana Low
 }
-

@@ -12,7 +12,7 @@ shapiroAcceptor(reference_fasta, target_fasta)
 \item{target_fasta}{vector of strings or DNAStringSet of fasta to score}
 }
 \value{
-vector with Shapiro scores
+data.frame with Shapiro scores
 }
 \description{
 Shapiro's score of acceptor site (range is from -13 [intron] to +1 [exon]) is:
@@ -33,10 +33,9 @@ splice_sites<-extractSpliceSites(splice_data$data,site="acceptor")
 acceptor.ss<-getSeq(bsgenome,splice_sites)
 sacceptor<-shapiroAcceptor(acceptor.m,acceptor.ss)
 }
-\author{
-Diana Low
-}
 \seealso{
 \url{http://www.softberry.com/spldb/SpliceDB.html}
 }
-
+\author{
+Diana Low
+}

@@ -22,4 +22,3 @@ and the resulting truncated protein
 Diana LOW
 }
 \keyword{internal}
-

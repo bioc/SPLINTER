@@ -12,7 +12,7 @@ shapiroDonor(reference_fasta, target_fasta)
 \item{target_fasta}{vector of strings or DNAStringSet of fasta to score}
 }
 \value{
-vector with Shapiro scores
+data.frame with Shapiro scores
 }
 \description{
 Shapiro and Senapathy (1987) have developed a method to score the strength of a splice site
@@ -32,12 +32,11 @@ splice_sites<-extractSpliceSites(splice_data$data)
 donor.ss<-getSeq(bsgenome,splice_sites)
 sdonor<-shapiroDonor(donor.m,donor.ss)
 }
+\seealso{
+\url{http://www.softberry.com/spldb/SpliceDB.html}
+}
 \author{
 Diana Low
 
 Diana Low
 }
-\seealso{
-\url{http://www.softberry.com/spldb/SpliceDB.html}
-}
-

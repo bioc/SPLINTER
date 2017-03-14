@@ -36,4 +36,3 @@ eventOutcomeCompare(seq1=compatible_cds$hits[[1]],seq2=region_minus_exon,
 \author{
 Diana LOW
 }
-

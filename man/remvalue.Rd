@@ -17,4 +17,3 @@ helper function to remove metadata from GRanges object
 used within metaremove
 }
 \keyword{internal}
-

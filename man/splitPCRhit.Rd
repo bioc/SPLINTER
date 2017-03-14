@@ -26,4 +26,3 @@ relevant_pcr_bands<-splitPCRhit(pcr_result1,compatible_tx)
 \author{
 Diana Low
 }
-

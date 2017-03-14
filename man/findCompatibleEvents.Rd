@@ -41,4 +41,3 @@ compatible_cds <- findCompatibleEvents(valid_cds,roi=roi,verbose=TRUE)
 \author{
 Diana Low
 }
-

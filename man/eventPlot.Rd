@@ -43,4 +43,3 @@ eventPlot(transcripts=valid_tx,roi_plot=roi,bams=c(wt,mt),
 \author{
 Diana Low
 }
-

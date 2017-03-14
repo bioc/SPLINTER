@@ -20,6 +20,6 @@ Imports: graphics, ggplot2, seqLogo, Biostrings, biomaRt,
         BSgenome.Mmusculus.UCSC.mm9
 biocViews: GeneExpression, RNASeq, Visualization, AlternativeSplicing
 Collate: primerpcr.R main_splinter.R
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 VignetteBuilder: knitr
 Suggests: BiocStyle, knitr, rmarkdown
