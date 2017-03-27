@@ -4,7 +4,7 @@
 \alias{extendROI}
 \title{extendROI}
 \usage{
-extendROI(roi, tx, up = 0, down = 0)
+extendROI(roi, tx, up = 0, down = 0, type = 1)
 }
 \arguments{
 \item{roi}{\code{\link{makeROI}} object}
@@ -14,6 +14,8 @@ extendROI(roi, tx, up = 0, down = 0)
 \item{up}{integer. number of exons to extend upstream}
 
 \item{down}{integer. number of exons to extend downstream}
+
+\item{type}{integer. 1=full cassette, 2=flank only}
 }
 \value{
 \code{\link{makeROI}} object with modified ranges

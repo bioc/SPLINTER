@@ -693,6 +693,7 @@ makeROI <-function(info,itemnum=1){
 #' @param tx GRangesList transcript list to pull regions from
 #' @param up integer. number of exons to extend upstream
 #' @param down integer. number of exons to extend downstream
+#' @param type integer. 1=full cassette, 2=flank only
 #'
 #' @return \code{\link{makeROI}} object with modified ranges
 #'
@@ -701,16 +702,21 @@ makeROI <-function(info,itemnum=1){
 #'
 #' @examples
 #' extendROI(roi,valid_tx,up=1)
-extendROI<-function(roi,tx,up=0,down=0){
+extendROI<-function(roi,tx,up=0,down=0,type=1){
   # 1. find transcripts that has the current event
-  if(roi$type=="SE"){
+  if(roi$type=="SE" && type==1){
     fso<-findSpliceOverlaps(GRangesList(roi$roi),tx)
+    vfso<-tx[subjectHits(fso[mcols(fso)$compatible==TRUE])]
+  } else if(roi$type=="SE" && type==2){
+    fso<-findSpliceOverlaps(GRangesList(roi$roi_range[[2]]),tx)
+    vfso<-tx[subjectHits(fso)]
   } else if(roi$type=="RI"){
     fso<-findSpliceOverlaps(GRangesList(roi$roi_range[[1]]),tx)
+    vfso<-tx[subjectHits(fso[mcols(fso)$compatible==TRUE])]
   }
 
   # 2. get the transcripts
-  vfso<-tx[subjectHits(fso[mcols(fso)$compatible==TRUE])]
+  #vfso<-tx[subjectHits(fso[mcols(fso)$compatible==TRUE])]
 
   # 3. get the exon numbers for the compatible transcripts
   for(i in seq_along(vfso)){
@@ -719,8 +725,6 @@ extendROI<-function(roi,tx,up=0,down=0){
       break
     }
   }
-
-
   # 4. check if first/last exon
 
   qh<-queryHits(evfso)
