@@ -1,8 +1,8 @@
 Package: SPLINTER
 Type: Package
 Title: Splice Interpreter Of Transcripts
-Version: 1.1.4
-Date: 2017-03-14
+Version: 1.1.5
+Date: 2017-03-27
 Authors@R: c(person("Diana", "Low", role = c("aut", "cre"),email =
         "dlow@imcb.a-star.edu.sg"))
 Author: Diana Low
