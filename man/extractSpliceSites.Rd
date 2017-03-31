@@ -4,21 +4,17 @@
 \alias{extractSpliceSites}
 \title{extractSpliceSites}
 \usage{
-extractSpliceSites(file, splicetype = "SE", site = "donor", fdr = 1,
-  motif_range = c(-3, 6), inclusion = 0, start0 = TRUE)
+extractSpliceSites(df, target = "SE", site = "donor", motif_range = c(-3,
+  6), start0 = TRUE)
 }
 \arguments{
-\item{file}{data.frame output from extractSpliceEvents}
+\item{df}{extractSpliceEvents object}
 
-\item{splicetype}{character either SE (skipped exon) or RI (retained intron)}
+\item{target}{the target site to extract. See Details.}
 
 \item{site}{character donor or acceptor}
 
-\item{fdr}{numeric false discovery rate filter range [0,1]}
-
 \item{motif_range}{numeric vector of splice position to extract}
-
-\item{inclusion}{numeric fraction,takes absolute value}
 
 \item{start0}{boolean 0-base start}
 }
@@ -29,10 +25,19 @@ GRanges object
 Extracts and formats to bed the location of target, upstream and downstream
 splice sites
 }
+\details{
+target : the site to extract the sequence from. It can be either the
+         event in question (SE, RI, MXE - first exon, MXE2 - second exon,
+         A5SSlong, A5SSshort, A3SSlong, A3SSshort, upstream or downstream).
+         If this function is used in conjunction with \link{shapiroDonor} or
+         \link{shapiroAcceptor} to compute scores, then most likely it will be run
+         twice - once for the event, and the other either up- or downstream
+         as a comparison.
+}
 \examples{
 data_path<-system.file("extdata",package="SPLINTER")
 splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
-splice_sites<-extractSpliceSites(splice_data$data)
+splice_sites<-extractSpliceSites(splice_data,target="SE")
 }
 \seealso{
 \url{http://rnaseq-mats.sourceforge.net/user_guide.htm} for MATS file definition

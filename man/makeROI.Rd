@@ -4,12 +4,12 @@
 \alias{makeROI}
 \title{makeROI}
 \usage{
-makeROI(info, itemnum = 1)
+makeROI(df, type = "SE")
 }
 \arguments{
-\item{info}{\code{\link{extractSpliceEvents}} object}
+\item{df}{data.frame object from \code{\link{extractSpliceEvents}}}
 
-\item{itemnum}{integer. row number of item in \code{info}}
+\item{type}{type of splicing event c("SE","RI","MXE","A5SS","A3SS")}
 }
 \value{
 a list containing\cr
@@ -24,7 +24,8 @@ Creates an object to store information about the splice site (region of interest
 including flanking regions and alternative splice outcome
 }
 \examples{
-roi <- makeROI(splice_data,1)
+single_record<-splice_data$data[which(grepl("Prmt5",splice_data$data$Symbol)),]
+roi <- makeROI(single_record,type="SE")
 }
 \author{
 Diana Low

@@ -5,7 +5,7 @@
 \title{extractSpliceEvents}
 \usage{
 extractSpliceEvents(data = NULL, filetype = "mats", splicetype = "SE",
-  fdr = 1, inclusion = 1)
+  fdr = 1, inclusion = 1, start0 = TRUE)
 }
 \arguments{
 \item{data}{character. path to file}
@@ -17,6 +17,8 @@ extractSpliceEvents(data = NULL, filetype = "mats", splicetype = "SE",
 \item{fdr}{numeric. false discovery rate filter range [0,1]}
 
 \item{inclusion}{numeric. splicing inclusion range, takes absolute value}
+
+\item{start0}{boolean 0-base start}
 }
 \value{
 list containing information on\cr
@@ -27,16 +29,13 @@ list containing information on\cr
 \description{
 Extracts the location of target, upstream and downstream splice sites
 Used for calculations and genome visualizations
-Adds 1bp to 0base start (MATS format)
 }
 \details{
 filetype 'custom' should provide a 9-column tab-delimited text file
    with the following columns:
-   GeneID (Ensembl gene id), chr, strand,
-   exonStart, exonEnd, upstreamES, upstreamEE, downstreamES, downstreamEE
-   eg. ENSG0000012345 chr1 + 3 4 1 2 5 6
-
-for filetype 'custom', coordinates are expected to be in base-1.
+   ID (Ensembl gene id), Symbol (gene name), chr, strand,
+   exonStart, exonEnd, exon2Start, exon2End, upstreamStart, upstreamEnd, downstreamStart, downstreamEnd
+   eg. ENSG0000012345 chr1 + 3 4 5 6 1 2 7 8
 }
 \examples{
 data_path<-system.file("extdata",package="SPLINTER")

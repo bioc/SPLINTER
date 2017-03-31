@@ -95,7 +95,7 @@ head(splice_data$data[,c(1:10)])
 Once we have defined the events, we will pick 1 event to analyze.
 ```{r}
 single_id='Prmt5'
-pp<-which(grepl(single_id,splice_data$data$geneSymbol)) # Prmt5 has 1 record
+pp<-which(grepl(single_id,splice_data$data$Symbol)) # Prmt5 has 1 record
 
 splice_data$data[pp,c(1:6)] # show all records
 
@@ -108,9 +108,9 @@ regards to our gene of interest. We find that Prmt5 has 7 transcripts, 2 of whic
 coding sequences.
 
 ```{r}
-valid_tx <- findTX(id=single_record$GeneID,tx=theexons,db=txdb)
+valid_tx <- findTX(id=single_record$ID,tx=theexons,db=txdb)
 
-valid_cds<- findTX(id=single_record$GeneID,tx=thecds,db=txdb)
+valid_cds<- findTX(id=single_record$ID,tx=thecds,db=txdb)
 ```
 
 ## Constructing the region of interest (ROI)
@@ -138,7 +138,7 @@ A5SS | isoform with longer exon | isoform with shorter exon
 A3SS | isoform with longer exon | isoform with shorter exon 
 
 ```{r}
-roi <- makeROI(splice_data,pp[1])
+roi <- makeROI(single_record,type="SE")
 roi
 ```
 

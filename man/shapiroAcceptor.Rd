@@ -29,7 +29,7 @@ library(BSgenome.Mmusculus.UCSC.mm9)
 bsgenome <- BSgenome.Mmusculus.UCSC.mm9
 data_path<-system.file("extdata",package="SPLINTER")
 splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
-splice_sites<-extractSpliceSites(splice_data$data,site="acceptor")
+splice_sites<-extractSpliceSites(splice_data,site="acceptor")
 acceptor.ss<-getSeq(bsgenome,splice_sites)
 sacceptor<-shapiroAcceptor(acceptor.m,acceptor.ss)
 }

@@ -3,13 +3,13 @@
 #'
 #' Extracts the location of target, upstream and downstream splice sites
 #' Used for calculations and genome visualizations
-#' Adds 1bp to 0base start (MATS format)
 #'
 #' @param data character. path to file
 #' @param filetype character. type of splicing output. c('mats','custom'). see Details.
 #' @param splicetype character. c('SE', 'RI', 'MXE', 'A5SS', 'A3SS')
 #' @param fdr numeric. false discovery rate filter range [0,1]
 #' @param inclusion numeric. splicing inclusion range, takes absolute value
+#' @param start0 boolean 0-base start
 #'
 #' @return list containing information on\cr
 #'   (1) original file type\cr
@@ -18,10 +18,10 @@
 #'
 #' @details filetype 'custom' should provide a 9-column tab-delimited text file
 #'    with the following columns:
-#'    GeneID (Ensembl gene id), chr, strand,
-#'    exonStart, exonEnd, upstreamES, upstreamEE, downstreamES, downstreamEE
-#'    eg. ENSG0000012345 chr1 + 3 4 1 2 5 6
-#' @details for filetype 'custom', coordinates are expected to be in base-1.
+#'    ID (Ensembl gene id), Symbol (gene name), chr, strand,
+#'    exonStart, exonEnd, exon2Start, exon2End, upstreamStart, upstreamEnd, downstreamStart, downstreamEnd
+#'    eg. ENSG0000012345 chr1 + 3 4 5 6 1 2 7 8
+#'
 #' @seealso \url{http://rnaseq-mats.sourceforge.net/user_guide.htm} for MATS file definition
 #' @author Diana Low
 #' @export
@@ -30,27 +30,30 @@
 #' data_path<-system.file("extdata",package="SPLINTER")
 #' splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
 extractSpliceEvents <- function(data=NULL,filetype='mats',splicetype='SE',fdr=1,
-                                inclusion=1){
+                                inclusion=1,start0=TRUE){
+  df<-read.table(data,header=TRUE,stringsAsFactors=FALSE,row.names=1)
   if(filetype=='mats'){
-    df<-read.table(data,header=TRUE,stringsAsFactors=FALSE,row.names=1)
     if(splicetype=='MXE'){
-      #rangecols<-c('exonStart_0base','exonEnd')
+      colnames(df)[1:12]<-c("ID","Symbol","chr","strand","exonStart","exonEnd","exon2Start","exon2End","upstreamStart","upstreamEnd","downstreamStart","downstreamEnd")
       df[,c(5,7,9,11)]<-df[,c(5,7,9,11)]+1
     } else {
-      #rangecols<-c('riExonStart_0base','riExonEnd')
+      colnames(df)[1:10]<-c("ID","Symbol","chr","strand","exonStart","exonEnd","upstreamStart","upstreamEnd","downstreamStart","downstreamEnd")
       df[,c(5,7,9)]<-df[,c(5,7,9)]+1
     }
-
     #filter FDR
     df<-df[df$FDR<=fdr,]
-
     #filter range
     if(inclusion!=1) df<-df[abs(df$IncLevelDifference)>=inclusion,]
   } else if(filetype=='custom'){
-    df<-read.table(data,header=TRUE,stringsAsFactors=FALSE,row.names=1)
+    colnames(df)[1:12]<-c("ID","Symbol","chr","strand","exonStart","exonEnd","exon2Start","exon2End","upstreamStart","upstreamEnd","downstreamStart","downstreamEnd")
+    if(start0){
+      df[,c(5,7,9,11)]<-df[,c(5,7,9,11)]+1
+    }
   } else {
     message('Invalid filetype!')
   }
+
+
   return(list(filetype=filetype,type=splicetype,data=df))
 }
 
@@ -59,15 +62,21 @@ extractSpliceEvents <- function(data=NULL,filetype='mats',splicetype='SE',fdr=1,
 #' Extracts and formats to bed the location of target, upstream and downstream
 #' splice sites
 #'
-#' @param file data.frame output from extractSpliceEvents
-#' @param splicetype character either SE (skipped exon) or RI (retained intron)
+#' @param df extractSpliceEvents object
+#' @param target the target site to extract. See Details.
 #' @param site character donor or acceptor
-#' @param fdr numeric false discovery rate filter range [0,1]
 #' @param motif_range numeric vector of splice position to extract
-#' @param inclusion numeric fraction,takes absolute value
 #' @param start0 boolean 0-base start
 #'
 #' @return GRanges object
+#'
+#' @details target : the site to extract the sequence from. It can be either the
+#'          event in question (SE, RI, MXE - first exon, MXE2 - second exon,
+#'          A5SSlong, A5SSshort, A3SSlong, A3SSshort, upstream or downstream).
+#'          If this function is used in conjunction with \link{shapiroDonor} or
+#'          \link{shapiroAcceptor} to compute scores, then most likely it will be run
+#'          twice - once for the event, and the other either up- or downstream
+#'          as a comparison.
 #'
 #' @seealso \url{http://rnaseq-mats.sourceforge.net/user_guide.htm} for MATS file definition
 #' @author Diana Low
@@ -77,64 +86,57 @@ extractSpliceEvents <- function(data=NULL,filetype='mats',splicetype='SE',fdr=1,
 #' @examples
 #' data_path<-system.file("extdata",package="SPLINTER")
 #' splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
-#' splice_sites<-extractSpliceSites(splice_data$data)
-extractSpliceSites <- function(file,splicetype='SE',site='donor',
-                               fdr=1,motif_range=c(-3,6),inclusion=0,start0=TRUE){
-  df=file
-
+#' splice_sites<-extractSpliceSites(splice_data,target="SE")
+extractSpliceSites <- function(df,target="SE",site='donor',
+                               motif_range=c(-3,6),start0=TRUE){
+  df<-df$data
   if(start0) base2add=1 else base2add=0
 
-  #df[,c(6,8,10)]<-df[,c(6,8,10)]+1 #shift 1 base for certain fields
-
-  switch(splicetype,
+  switch(target,
          "SE" = {
-           startf<-"exonStart_0base"
+           startf<-"exonStart"
            endf<-"exonEnd"
          },
          "RI" = {
-           startf<-"riExonStart_0base"
-           endf<-"riExonEnd"
+           startf<-"exonStart"
+           endf<-"exonEnd"
          },
          "MXE" = {
-           startf<-"X1stExonStart_0base"
-           endf="X1stExonEnd"
+           startf<-"exonStart"
+           endf="exonEnd"
          },
          "MXE2" = {
-           startf<-"X2ndExonStart_0base"
-           endf="X2ndExonEnd"
+           startf<-"exon2Start"
+           endf="exon2End"
          },
          "A5SSlong" = {
-           startf<-"longExonStart_0base"
-           endf="longExonEnd"
+           startf<-"exonStart"
+           endf="exonEnd"
          },
          "A5SSshort" = {
-           startf<-"shortES"
-           endf="shortEE"
+           startf<-"exon2Start"
+           endf="exon2End"
          },
          "A3SSlong" = {
-           startf<-"longExonStart_0base"
-           endf="longExonEnd"
+           startf<-"exonStart"
+           endf="exonEnd"
          },
          "A3SSshort" = {
-           startf<-"shortES"
-           endf="shortEE"
+           startf<-"exon2Start"
+           endf="exon2End"
          },
          "upstream"={
-           startf<-"upstreamES"
-           endf<-"upstreamEE"
+           startf<-"upstreamStart"
+           endf<-"upstreamEnd"
          },
          "downstream" = {
-           startf<-"downstreamES"
-           endf<-"downstreamEE"
-         },
-         "flank" = {
-           startf<-"flankingES"
-           endf<-"flankingEE"
+           startf<-"downstreamStart"
+           endf<-"downstreamEnd"
          }
   )
 
-  target_exons<-makeGRangesFromDataFrame(df,start.field = startf , end.field = endf, starts.in.df.are.0based=TRUE)
-  mcols(target_exons)$names<-df$GeneID
+  target_exons<-makeGRangesFromDataFrame(df,start.field = startf , end.field = endf, starts.in.df.are.0based=start0)
+  mcols(target_exons)$names<-df$ID
   target_exons_pos<-target_exons[strand(target_exons)=="+"]
   target_exons_neg<-target_exons[strand(target_exons)=="-"]
 
@@ -205,7 +207,7 @@ plot_seqlogo <-function(fasta_seq){
 #' bsgenome <- BSgenome.Mmusculus.UCSC.mm9
 #' data_path<-system.file("extdata",package="SPLINTER")
 #' splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
-#' splice_sites<-extractSpliceSites(splice_data$data)
+#' splice_sites<-extractSpliceSites(splice_data)
 #' donor.ss<-getSeq(bsgenome,splice_sites)
 #' sdonor<-shapiroDonor(donor.m,donor.ss)
 shapiroDonor<-function(reference_fasta,target_fasta){
@@ -253,7 +255,7 @@ shapiroDonor<-function(reference_fasta,target_fasta){
 #' bsgenome <- BSgenome.Mmusculus.UCSC.mm9
 #' data_path<-system.file("extdata",package="SPLINTER")
 #' splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
-#' splice_sites<-extractSpliceSites(splice_data$data,site="acceptor")
+#' splice_sites<-extractSpliceSites(splice_data,site="acceptor")
 #' acceptor.ss<-getSeq(bsgenome,splice_sites)
 #' sacceptor<-shapiroAcceptor(acceptor.m,acceptor.ss)
 shapiroAcceptor<-function(reference_fasta,target_fasta){
@@ -351,15 +353,15 @@ makeUniqueIDs<-function(data){
 addEnsemblAnnotation<-function(data,species='hsapiens'){
   df<-data$data
   ensembl<-useMart("ensembl",dataset=paste(species,"_gene_ensembl",sep=""))
-  values<-df$GeneID
+  values<-df$ID
   tt<-getBM(attributes=c('ensembl_gene_id','wikigene_name'),
             filters = 'ensembl_gene_id', values = values, mart = ensembl)
   tt <- tt[!duplicated(tt$ensembl_gene_id),]
-  colnames(tt)[1]<-"GeneID"
-  tt<-merge(df,tt,by="GeneID",sort=FALSE,incomparables="-",all.x=TRUE)
-  tt$geneSymbol<-tt$wikigene_name
+  colnames(tt)[1]<-"ID"
+  tt<-merge(df,tt,by="ID",sort=FALSE,incomparables="-",all.x=TRUE)
+  tt$Symbol<-tt$wikigene_name
   tt<-tt[,-ncol(tt)]
-  tt[is.na(tt$geneSymbol),2] <- "-"
+  tt[is.na(tt$Symbol),2] <- "-"
   data$data<-tt
   return(data)
 }
@@ -621,8 +623,8 @@ matchExons <- function(ref,subject){
 #' Creates an object to store information about the splice site (region of interest)
 #' including flanking regions and alternative splice outcome
 #'
-#' @param info \code{\link{extractSpliceEvents}} object
-#' @param itemnum integer. row number of item in \code{info}
+#' @param df data.frame object from \code{\link{extractSpliceEvents}}
+#' @param type type of splicing event c("SE","RI","MXE","A5SS","A3SS")
 #'
 #' @return a list containing\cr
 #'   (1) type : splice type\cr
@@ -637,23 +639,23 @@ matchExons <- function(ref,subject){
 #' @author Diana Low
 #'
 #' @examples
-#' roi <- makeROI(splice_data,1)
-makeROI <-function(info,itemnum=1){
-  df<-info$data
+#' single_record<-splice_data$data[which(grepl("Prmt5",splice_data$data$Symbol)),]
+#' roi <- makeROI(single_record,type="SE")
+makeROI <-function(df,type="SE"){
   colnum<-which(colnames(df)=='chr')
-  chr<-df[itemnum,colnum]
+  chr<-df[,colnum]
 
-  strand<-df[itemnum,colnum+1]
+  strand<-df[,colnum+1]
 
-  if(info$type=="SE" | info$type=="RI"){
-    chr_range<-as.numeric(df[itemnum,c((colnum+2):(colnum+7))])
+  if(type=="SE" | type=="RI"){
+    chr_range<-as.numeric(df[,c((colnum+2):(colnum+7))])
     roi<-GenomicRanges::GRanges(chr,IRanges::IRanges(chr_range[1],chr_range[2]),strand=strand,exon_rank=as.integer(1))
     flank<-GRanges(c(chr,chr),c(IRanges(chr_range[3],chr_range[4]),IRanges(chr_range[5],chr_range[6])),exon_rank=1:2,strand=strand)
   }
   else {
-    chr_range<-as.numeric(df[itemnum,c((colnum+2):(colnum+9))])
+    chr_range<-as.numeric(df[,c((colnum+2):(colnum+9))])
     roi<-GRanges(c(chr,chr),c(IRanges(chr_range[1],chr_range[2]),IRanges(chr_range[3],chr_range[4])),strand=strand,exon_rank=1:2)
-    if(info$type=="MXE"){
+    if(type=="MXE"){
       flank<-GRanges(c(chr,chr),c(IRanges(chr_range[5],chr_range[6]),IRanges(chr_range[7],chr_range[8])),exon_rank=1:2,strand=strand)
     }
     else {
@@ -664,23 +666,23 @@ makeROI <-function(info,itemnum=1){
   if(strand=="-") flank<-rev(flank)
   roi_ranges<-GRangesList()
 
-  if(info$type!="RI"){
+  if(type!="RI"){
     for(i in 1:length(roi)){
       roi_ranges[[length(roi_ranges)+1]]<-reduce(append(flank,roi[i],after=0))
       if(strand=="-") roi_ranges[[length(roi_ranges)]]<-rev(roi_ranges[[length(roi_ranges)]])
     }
   }
 
-  if(info$type=="SE" | info$type=="RI"){
+  if(type=="SE" | type=="RI"){
     roi_ranges[[length(roi_ranges)+1]]<-metaremove(flank)
     if(strand=="-") roi_ranges[[length(roi_ranges)]]<-rev(roi_ranges[[length(roi_ranges)]])
   }
 
-  if(info$type=="RI"){
+  if(type=="RI"){
     roi_ranges[[length(roi_ranges)+1]]<-metaremove(roi)
     if(strand=="-") roi_ranges[[length(roi_ranges)]]<-rev(roi_ranges[[length(roi_ranges)]])
   }
-  return(list(type=info$type,name=df[itemnum,2],roi=roi,flank=flank,roi_range=roi_ranges))
+  return(list(type=type,name=df$ID,roi=roi,flank=flank,roi_range=roi_ranges))
 }
 
 #' extendROI
