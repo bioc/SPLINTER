@@ -1,6 +1,5 @@
 SPLINTER v1.1.3 (2017-02-17)
 ==============
-
 Changes:
 
 * extractSpliceSites is now more flexible for different splice types and sites
