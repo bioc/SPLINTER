@@ -7,7 +7,7 @@
 removeRegion(subject, roi)
 }
 \arguments{
-\item{subject}{GRanges or GrangesList object}
+\item{subject}{GRanges or GRangesList object}
 
 \item{roi}{\code{\link{makeROI}} object containing GRanges range (to remove)}
 }

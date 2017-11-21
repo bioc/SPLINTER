@@ -7,7 +7,7 @@
 insertRegion(subject, roi)
 }
 \arguments{
-\item{subject}{GrangesList}
+\item{subject}{GRangesList}
 
 \item{roi}{\code{\link{makeROI}} object containg region of interest (to insert).
 refer to makeROI().}

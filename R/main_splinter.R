@@ -761,7 +761,7 @@ extendROI<-function(roi,tx,up=0,down=0,type=1){
 #'
 #' removes a region (exon) from a GRanges or GRangesList
 #'
-#' @param subject GRanges or GrangesList object
+#' @param subject GRanges or GRangesList object
 #' @param roi \code{\link{makeROI}} object containing GRanges range (to remove)
 #'
 #' @return GRanges object
@@ -796,7 +796,7 @@ removeRegion <- function(subject,roi){
 #' replaces exon with intron retention range
 #' reduce() the GRanges in question
 #'
-#' @param subject GrangesList
+#' @param subject GRangesList
 #' @param roi \code{\link{makeROI}} object containg region of interest (to insert).
 #'   refer to makeROI().
 #'
