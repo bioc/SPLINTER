@@ -325,7 +325,7 @@ makeUniqueIDs<-function(data){
   if(data$type=="MXE") numcol=9
   else numcol=7
 
-  uID<-apply(data$data,1,function(x) paste(x[3:(3+numcol)],collapse="_"))
+  uID<-apply(data$data,1,function(x) paste(x[3:(3+numcol)],collapse="_",sep=""))
   data$data<-cbind.data.frame(data$data,uID,stringsAsFactors=FALSE)
 
   return(data)
@@ -761,7 +761,7 @@ extendROI<-function(roi,tx,up=0,down=0,type=1){
 #'
 #' removes a region (exon) from a GRanges or GRangesList
 #'
-#' @param subject GRanges or GRangesList object
+#' @param subject GRanges or GrangesList object
 #' @param roi \code{\link{makeROI}} object containing GRanges range (to remove)
 #'
 #' @return GRanges object
@@ -796,7 +796,7 @@ removeRegion <- function(subject,roi){
 #' replaces exon with intron retention range
 #' reduce() the GRanges in question
 #'
-#' @param subject GRangesList
+#' @param subject GrangesList
 #' @param roi \code{\link{makeROI}} object containg region of interest (to insert).
 #'   refer to makeROI().
 #'
@@ -914,7 +914,7 @@ eventOutcomeCompare <- function(seq1,seq2=NULL,genome,direction=TRUE,fullseq=TRU
     if(ft2$stop1==0) message("Sequence2 - no stop codon")
 
     if(ft$s1==ft2$s1){
-      result=''
+      result='(no change)'
     }
     else {
       if(ft2$stop1!=0){
@@ -1137,6 +1137,7 @@ eventOutcomeTranslate<-function(seq1,genome,direction=FALSE,fullseq=TRUE){
 #' @param annoLabel character. annotation label
 #' @param rspan integer or NULL. number of basepairs to span from roi.
 #'    if NULL, will consider whole gene of roi
+#' @param pfam_dom optional GRanges object of PFAM domains from UCSC Tables.
 #' @param showAll logical. TRUE = display splice junctions of entire view or
 #'    FALSE = just roi.
 #'
@@ -1155,13 +1156,19 @@ eventOutcomeTranslate<-function(seq1,genome,direction=FALSE,fullseq=TRUE){
 #' # plot results
 #' eventPlot(transcripts=valid_tx,roi_plot=roi,bams=c(wt,mt),
 #'  names=c('wt','mt'),rspan=1000)
-eventPlot <-function(transcripts,roi_plot=NULL,bams=c(),names=c(),annoLabel=c('Gene A'),rspan=1000,showAll=TRUE){
+eventPlot <-function(transcripts,roi_plot=NULL,bams=c(),names=c(),annoLabel=c('Gene A'),rspan=1000,pfam_dom=NULL,showAll=TRUE){
+  #options(Gviz.ucscUrl="http://genome-asia.ucsc.edu/cgi-bin/")
   if(!is.null(roi_plot)) {
     roi1=roi_plot$roi
     chr <- as.character(unique(seqnames(roi1)))[1]
     ##subsetting the transcript list
-    thehits<-findOverlaps(roi_plot$roi_range,transcripts,type="any",ignore.strand=TRUE,select="all")
-    transcripts<-transcripts[subjectHits(thehits)]
+    transcripts<-subsetByOverlaps(transcripts,roi_plot$roi_range,ignore.strand=TRUE)
+    
+    ##subsetting the pfam list
+    if(!is.null(pfam_dom)){
+      pfam_dom<-subsetByOverlaps(pfam_dom,transcripts)
+      if(length(pfam_dom)==0) pfam_dom=NULL
+    }
   }
   else {
     roi1=NULL
@@ -1172,21 +1179,37 @@ eventPlot <-function(transcripts,roi_plot=NULL,bams=c(),names=c(),annoLabel=c('G
   dataTrack<-dataTrack[,1:5]
   dataTrack<-cbind(dataTrack,feature="protein_coding",exon=1,transcript=names(unlist(transcripts)))
 
+  ### coloring the gene models
+  comp_roi1<-names(findCompatibleEvents(transcripts,roi=roi_plot,verbose=FALSE)$hits[[1]])
+  comp_roi2<-names(findCompatibleEvents(transcripts,roi=roi_plot,verbose=FALSE)$hits[[2]])
+  dataTrack$compatibility<-"NA"
+  if(!isEmpty(comp_roi1)) dataTrack[dataTrack$transcript %in% comp_roi1,]$compatibility<-"comp_roi1"
+  if(!isEmpty(comp_roi2)) dataTrack[dataTrack$transcript %in% comp_roi2,]$compatibility<-"comp_roi2"
+  
   #single copy tracks
   gen<-unique(genome(transcripts))
 
   gtrack <- GenomeAxisTrack(name="",cex=1.2,col="black")
-  #itrack <- IdeogramTrack(genome = gen, chromosome = chr,cex=1.2)
+  #itrack <- IdeogramTrack(genome = gen, chromosome = chr,showId=TRUE,showBandId=FALSE)
   grtrack <- GeneRegionTrack(dataTrack, genome = gen, cex=2,col=NULL, chromosome = chr,fill="darkgoldenrod2",
-                             name = "Gene Model",transcriptAnnotation="transcript",feature="gene")
-
+                             name = "Gene Model",transcriptAnnotation="transcript",fontcolor.exon = 1,
+                             fontcolor.exon = 1,fontsize=16,fontsize.group=16,
+                             fontcolor.group ="black",fontcolor.item="black",
+                             feature=dataTrack$compatibility, featureAnnotation="feature",alpha=0.9)
   tracklist<-list(gtrack)#list(itrack,gtrack)#
   boxsizes<-c(1)#c(1,1)#
 
+  
+  
   #scaling to particular roi
   if(!is.null(roi1)) {
     if(roi_plot$type=="RI") roi_plot$roi_range<-rev(roi_plot$roi_range)
-    anno<-AnnotationTrack(roi_plot$roi_range,genome=gen,shape="box",name=annoLabel,cex.group=1,cex=0.8,fontcolor.feature="black",col=NULL,group=rep(c("Inclusion","Skipping"),c(length(roi_plot$roi_range[[1]]),length(roi_plot$roi_range[[2]]))),fill=rep(c("#C4112C", "#1155C4"),c(length(roi_plot$roi_range[[1]]),length(roi_plot$roi_range[[2]]))))
+    anno<-AnnotationTrack(roi_plot$roi_range,genome=gen,shape="box",name=annoLabel,cex.group=1,cex=0.8,
+                          fontcolor.feature="black",col=NULL,
+                          fontcolor.exon = 1,fontsize=16,fontsize.group=16,
+                          fontcolor.group ="black",fontcolor.item="black",
+                          group=rep(c("Inclusion","Skipping"),c(length(roi_plot$roi_range[[1]]),length(roi_plot$roi_range[[2]]))),
+                          fill=rep(c("#C4112C", "#1155C4"),c(length(roi_plot$roi_range[[1]]),length(roi_plot$roi_range[[2]]))))
     #group(anno)<-annoLabel
     tracklist<-c(tracklist,anno)
     #tracklist<-list(itrack,gtrack,anno,grtrack,alTrack1,alTrack2)
@@ -1196,15 +1219,34 @@ eventPlot <-function(transcripts,roi_plot=NULL,bams=c(),names=c(),annoLabel=c('G
     #boxsizes<-c(1,1,2,2)
     startrange<-start(roi_plot$roi_range[[1]])
     endrange<-start(roi_plot$roi_range[[1]])
+    
   } else {
     rspan=NULL
     #tracklist<-list(itrack,gtrack,grtrack,alTrack1,alTrack2)
     #boxsizes<-c(1,1,2,2,2)
   }
-
+  
   tracklist<-c(tracklist,grtrack)
   boxsizes<-c(boxsizes,2)
 
+  if(!is.null(pfam_dom)){
+    pfam.transcripts<-pfam_dom
+    pfam.dataTrack<-as.data.frame(pfam.transcripts,row.names=NULL)
+    pfam.dataTrack<-pfam.dataTrack[,1:5]
+    pfam.dataTrack<-cbind(pfam.dataTrack,feature="protein_coding",exon=1,transcript=pfam.transcripts$transcript_id)
+    pfam_domains <- GeneRegionTrack(pfam.dataTrack,genome=gen,chromosome=chr,cex=2,col=NULL,
+                                    transcriptAnnotation="transcript",feature="gene",fill="forestgreen",
+                                    name="PFAM feature", fontcolor.exon = 1,fontsize=16,fontsize.group=16,
+                                    fontcolor.group ="black",fontcolor.item="black")
+    # pfam_domains <- UcscTrack(genome = gen, chromosome = chr,
+    #                           track = "ucscGenePfam", from = min(start(roi_plot$roi_range[[1]])), to = max(start(roi_plot$roi_range[[1]])),
+    #                           trackType = "AnnotationTrack", start = "chromStart",
+    #                           end = "chromEnd", id = "name", shape = "box",
+    #                           fill = "#006400", name = "PFAM",showFeatureId=TRUE,featureAnnotation = "group")
+    #print(pfam_domains)
+    tracklist<-c(tracklist,pfam_domains)
+    boxsizes<-c(boxsizes,1)
+  }
   #to accomodate multibams
   if(length(bams)!=0){
     for(i in 1:length(bams)){
@@ -1220,19 +1262,22 @@ eventPlot <-function(transcripts,roi_plot=NULL,bams=c(),names=c(),annoLabel=c('G
       #groupAnnotation="group",
       plotTracks(tracklist,
                  from=min(startrange)-rspan,to=max(endrange)+rspan,
-                 cex.title=1,col.title="black",background.title = "lightgray",lwd=2,labelPos="below",sizes=boxsizes)
+                 cex.title=1,col.title="black",background.title = "lightgray",lwd=2,labelPos="below",sizes=boxsizes,
+                 comp_roi1="#C4112C",comp_roi2="#1155C4")
     } else {
       introns<-psetdiff(range(roi_plot$roi_range),roi_plot$roi_range)
       concatintron<-append(introns[[1]],introns[[2]])
       plotTracks(tracklist,groupAnnotation="group",type=c("coverage","sashimi"),
                  sashimiFilter=concatintron,
                  from=min(startrange)-rspan,to=max(endrange)+rspan,
-                 cex.title=1,col.title="black",background.title = "lightgray",lwd=2,labelPos="below",sizes=boxsizes)
+                 cex.title=1,col.title="black",background.title = "lightgray",lwd=2,labelPos="below",sizes=boxsizes,
+                 comp_roi1="#C4112C",comp_roi2="#1155C4")
     }
 
   } else {
     plotTracks(tracklist,groupAnnotation="group",type=c("coverage","sashimi"),
-               cex.title=1,col.title="black",background.title = "lightgray",lwd=2,labelPos="below",sizes=boxsizes)
+               cex.title=1,col.title="black",background.title = "lightgray",lwd=2,labelPos="below",sizes=boxsizes,
+               comp_roi1="#C4112C",comp_roi2="#1155C4")
   }
 }
 

@@ -5,7 +5,8 @@
 \title{eventPlot}
 \usage{
 eventPlot(transcripts, roi_plot = NULL, bams = c(), names = c(),
-  annoLabel = c("Gene A"), rspan = 1000, showAll = TRUE)
+  annoLabel = c("Gene A"), rspan = 1000, pfam_dom = NULL,
+  showAll = TRUE)
 }
 \arguments{
 \item{transcripts}{GRanges object}
@@ -20,6 +21,8 @@ eventPlot(transcripts, roi_plot = NULL, bams = c(), names = c(),
 
 \item{rspan}{integer or NULL. number of basepairs to span from roi.
 if NULL, will consider whole gene of roi}
+
+\item{pfam_dom}{optional GRanges object of PFAM domains from UCSC Tables.}
 
 \item{showAll}{logical. TRUE = display splice junctions of entire view or
 FALSE = just roi.}

@@ -43,7 +43,7 @@ getPCRsizes<-function(pcr_span,txlist,verbose=FALSE){
 
   txsizes<-ldply(pcr_hits,function(x) {
     po2<-findOverlaps(pcr_span$total_span,x)
-    sum(width(overlapsRanges(ranges(pcr_span$total_span),ranges(x),hits=po2)))
+    sum(width(ranges(po2,ranges(pcr_span$total_span),ranges(x))))
     })
 
   colnames(txsizes)<-c("ID","bp")
@@ -71,10 +71,11 @@ getPCRsizes<-function(pcr_span,txlist,verbose=FALSE){
 #' ## splitPCRhit will determine which bands are relevant to the target
 #' relevant_pcr_bands<-splitPCRhit(pcr_result1,compatible_tx)
 splitPCRhit<-function(res,hitlist){
-  q1<-res[res$ID %in% names(hitlist$hits[[1]]),]
-  q2<-res[res$ID %in% names(hitlist$hits[[2]]),]
-
-  return(list(Type1=q1,Type2=q2))
+  #q1<-res[res$ID %in% names(hitlist$hits[[1]]),]
+  #q2<-res[res$ID %in% names(hitlist$hits[[2]]),]
+  res[which(res$ID %in% names(hitlist$hits[[1]])),"type"]<-1
+  res[which(res$ID %in% names(hitlist$hits[[2]])),"type"]<-2
+  return(res)
 }
 
 #' getRegionDNA
