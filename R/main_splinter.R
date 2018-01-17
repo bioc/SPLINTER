@@ -270,7 +270,7 @@ shapiroAcceptor<-function(reference_fasta,target_fasta){
   }
 
   #rpwm<-consensusMatrix(reference_fasta,as.prob=T)[1:4,]
-  tpwm<-consensusMatrix(target_fasta,as.prob=T)[1:4,]
+  tpwm<-consensusMatrix(target_fasta,as.prob=TRUE)[1:4,]
 
   l1<-sum(sort(apply(rpwm[,1:10],2,min))[1:8])
   h1<-sum(sort(apply(rpwm[,1:10],2,max),decreasing=TRUE)[1:8])
@@ -294,6 +294,7 @@ shapiroAcceptor<-function(reference_fasta,target_fasta){
 #' @param ctrl_scores output of shapiroDonor or shapiroAcceptor
 #' @param treat_scores output of shapiroDonor or shapiroAcceptor
 #' @param sample samplenames
+#' @return density plot of Shapiro scores
 #' @author Diana Low
 #'
 #' @import ggplot2
@@ -352,7 +353,7 @@ makeUniqueIDs<-function(data){
 #' splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
 addEnsemblAnnotation<-function(data,species='hsapiens'){
   df<-data$data
-  ensembl<-useMart("ensembl",dataset=paste(species,"_gene_ensembl",sep=""))
+  ensembl<-useMart("ensembl",host = "asia.ensembl.org",dataset=paste(species,"_gene_ensembl",sep=""))
   values<-df$ID
   tt<-getBM(attributes=c('ensembl_gene_id','wikigene_name'),
             filters = 'ensembl_gene_id', values = values, mart = ensembl)
@@ -1163,7 +1164,7 @@ eventPlot <-function(transcripts,roi_plot=NULL,bams=c(),names=c(),annoLabel=c('G
     chr <- as.character(unique(seqnames(roi1)))[1]
     ##subsetting the transcript list
     transcripts<-subsetByOverlaps(transcripts,roi_plot$roi_range,ignore.strand=TRUE)
-    
+
     ##subsetting the pfam list
     if(!is.null(pfam_dom)){
       pfam_dom<-subsetByOverlaps(pfam_dom,transcripts)
@@ -1185,7 +1186,7 @@ eventPlot <-function(transcripts,roi_plot=NULL,bams=c(),names=c(),annoLabel=c('G
   dataTrack$compatibility<-"NA"
   if(!isEmpty(comp_roi1)) dataTrack[dataTrack$transcript %in% comp_roi1,]$compatibility<-"comp_roi1"
   if(!isEmpty(comp_roi2)) dataTrack[dataTrack$transcript %in% comp_roi2,]$compatibility<-"comp_roi2"
-  
+
   #single copy tracks
   gen<-unique(genome(transcripts))
 
@@ -1199,8 +1200,8 @@ eventPlot <-function(transcripts,roi_plot=NULL,bams=c(),names=c(),annoLabel=c('G
   tracklist<-list(gtrack)#list(itrack,gtrack)#
   boxsizes<-c(1)#c(1,1)#
 
-  
-  
+
+
   #scaling to particular roi
   if(!is.null(roi1)) {
     if(roi_plot$type=="RI") roi_plot$roi_range<-rev(roi_plot$roi_range)
@@ -1219,13 +1220,13 @@ eventPlot <-function(transcripts,roi_plot=NULL,bams=c(),names=c(),annoLabel=c('G
     #boxsizes<-c(1,1,2,2)
     startrange<-start(roi_plot$roi_range[[1]])
     endrange<-start(roi_plot$roi_range[[1]])
-    
+
   } else {
     rspan=NULL
     #tracklist<-list(itrack,gtrack,grtrack,alTrack1,alTrack2)
     #boxsizes<-c(1,1,2,2,2)
   }
-  
+
   tracklist<-c(tracklist,grtrack)
   boxsizes<-c(boxsizes,2)
 

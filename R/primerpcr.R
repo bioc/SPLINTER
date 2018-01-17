@@ -43,7 +43,7 @@ getPCRsizes<-function(pcr_span,txlist,verbose=FALSE){
 
   txsizes<-ldply(pcr_hits,function(x) {
     po2<-findOverlaps(pcr_span$total_span,x)
-    sum(width(ranges(po2,ranges(pcr_span$total_span),ranges(x))))
+    sum(width(overlapsRanges(ranges(pcr_span$total_span),ranges(x),po2)))
     })
 
   colnames(txsizes)<-c("ID","bp")

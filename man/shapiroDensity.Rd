@@ -13,6 +13,9 @@ shapiroDensity(ctrl_scores, treat_scores, sample = c(1, 2))
 
 \item{sample}{samplenames}
 }
+\value{
+density plot of Shapiro scores
+}
 \description{
 convenience function for plotting Shapiro score density
 }

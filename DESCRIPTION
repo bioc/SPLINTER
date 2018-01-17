@@ -1,8 +1,8 @@
 Package: SPLINTER
 Type: Package
 Title: Splice Interpreter Of Transcripts
-Version: 1.5.2
-Date: 2018-01-08
+Version: 1.5.3
+Date: 2018-01-16
 Authors@R: c(person("Diana", "Low", role = c("aut", "cre"),email =
         "dlow@imcb.a-star.edu.sg"))
 Author: Diana Low
@@ -13,7 +13,7 @@ Description: SPLINTER provides tools to analyze alternative splicing
         representation of the event to guide downstream experiments.
 License: GPL-2
 LazyData: TRUE
-Depends: R (>= 3.3.0), grDevices, stats
+Depends: R (>= 3.4.0), grDevices, stats
 Imports: graphics, ggplot2, seqLogo, Biostrings, biomaRt,
         GenomicAlignments, GenomicRanges, GenomicFeatures, Gviz,
         IRanges, S4Vectors, GenomeInfoDb, utils, plyr,
