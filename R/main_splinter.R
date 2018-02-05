@@ -1363,7 +1363,7 @@ psiPlot <- function (df=NULL,type="MATS",sample_labels=c("Sample 1", "Sample 2")
 #' @import IRanges
 #' @keywords internal
 metaremove <- function(x) {
-  if (class(x)=="GRangesList") return(endoapply(x, metaremove))
+  if (is(x, "GRangesList")) return(endoapply(x, metaremove))
   reduce(remvalue(x))
 }
 
