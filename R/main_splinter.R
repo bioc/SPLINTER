@@ -1097,13 +1097,13 @@ eventOutcomeTranslate<-function(seq1,genome,direction=FALSE,fullseq=TRUE){
         thetranscript<-seq1$hits[[r]][[i]]
         FLAG_LEN<-FALSE #if sequences have been flipped in pairwiseAlignment because of length
         FLAG_INDEL<-FALSE
-        wlastexon<-width(unlist(thetranscript))[length(unlist(thetranscript))]
+        wlastexon<-width(thetranscript)[length(thetranscript)]
         #wlastexon2<-width(unlist(ranges(seq2[i])))[length(granges(unlist(seq2[i])))]
         ft<-findTermination(prot_seq1[i])
         if(ft$stop1==0) if(verbose) message("Sequence1 - no stop codon")
 
         if(ft$stop1!=0){
-          distanceupstream=sum(width(unlist(thetranscript)))-(ft$stop1)*3
+          distanceupstream=sum(width(thetranscript))-(ft$stop1)*3
 
           #if negative difference, retained intron, new protein
           if(distanceupstream==0) result=paste(width(ft$s1)-1,"AA")
