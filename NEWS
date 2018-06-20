@@ -1,3 +1,11 @@
+SPLINTER v1.7.1 (2018-06-20)
+==============
+Changes:
+
+* updated ranges to overlapRanges (GenomicRanges) in splitPCR
+* fixed whitespaces in makeUniqueIDs
+
+
 SPLINTER v1.5.2 (2018-01-08)
 ==============
 Changes:

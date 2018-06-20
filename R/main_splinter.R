@@ -316,6 +316,7 @@ shapiroDensity<-function(ctrl_scores,treat_scores,sample=c(1,2)){
 #' @return original extractSpliceEvents list object with unique ID
 #'    appended to data accessor
 #'
+#' @import stringr
 #' @export
 #'
 #' @author Diana Low
@@ -323,13 +324,13 @@ shapiroDensity<-function(ctrl_scores,treat_scores,sample=c(1,2)){
 #' @examples
 #' data_with_id<-makeUniqueIDs(splice_data)
 makeUniqueIDs<-function(data){
-  if(data$type=="MXE") numcol=9
-  else numcol=7
+  if(ddata$type=="MXE") numcol=9 else numcol=7
 
-  uID<-apply(data$data,1,function(x) paste(x[3:(3+numcol)],collapse="_",sep=""))
-  data$data<-cbind.data.frame(data$data,uID,stringsAsFactors=FALSE)
+  uID<-apply(ddata$data,1,function(x) paste(x[3:(3+numcol)],collapse="_",sep=""))
+  uID<-str_replace_all(uID, fixed(" "), "")
+  ddata$data<-cbind.data.frame(ddata$data,uID,stringsAsFactors=FALSE)
 
-  return(data)
+  return(ddata)
 }
 
 #' addEnsemblAnnotation
