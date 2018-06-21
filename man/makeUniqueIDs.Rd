@@ -4,10 +4,10 @@
 \alias{makeUniqueIDs}
 \title{makeUniqueIDs}
 \usage{
-makeUniqueIDs(data)
+makeUniqueIDs(ddata)
 }
 \arguments{
-\item{data}{extractSpliceEvents object}
+\item{ddata}{extractSpliceEvents object}
 }
 \value{
 original extractSpliceEvents list object with unique ID

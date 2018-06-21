@@ -1,7 +1,7 @@
 Package: SPLINTER
 Type: Package
 Title: Splice Interpreter Of Transcripts
-Version: 1.7.1
+Version: 1.7.2
 Date: 2018-06-20
 Authors@R: c(person("Diana", "Low", role = c("aut", "cre"),email =
         "dlow@imcb.a-star.edu.sg"))
@@ -16,7 +16,7 @@ LazyData: TRUE
 Depends: R (>= 3.4.0), grDevices, stats
 Imports: graphics, ggplot2, seqLogo, Biostrings, biomaRt,
         GenomicAlignments, GenomicRanges, GenomicFeatures, Gviz,
-        IRanges, S4Vectors, GenomeInfoDb, utils, plyr,stringr,
+        IRanges, S4Vectors, GenomeInfoDb, utils, plyr,stringr, methods,
         BSgenome.Mmusculus.UCSC.mm9
 biocViews: GeneExpression, RNASeq, Visualization, AlternativeSplicing
 Collate: primerpcr.R main_splinter.R

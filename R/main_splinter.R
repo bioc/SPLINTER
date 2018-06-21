@@ -311,7 +311,7 @@ shapiroDensity<-function(ctrl_scores,treat_scores,sample=c(1,2)){
 #'
 #' Makes unique ID names from event location
 #'
-#' @param data extractSpliceEvents object
+#' @param ddata extractSpliceEvents object
 #'
 #' @return original extractSpliceEvents list object with unique ID
 #'    appended to data accessor
@@ -323,7 +323,7 @@ shapiroDensity<-function(ctrl_scores,treat_scores,sample=c(1,2)){
 #'
 #' @examples
 #' data_with_id<-makeUniqueIDs(splice_data)
-makeUniqueIDs<-function(data){
+makeUniqueIDs<-function(ddata){
   if(ddata$type=="MXE") numcol=9 else numcol=7
 
   uID<-apply(ddata$data,1,function(x) paste(x[3:(3+numcol)],collapse="_",sep=""))
@@ -385,7 +385,7 @@ addEnsemblAnnotation<-function(data,species='hsapiens'){
 #' @author Diana Low
 #'
 #' @examples
-#' valid_cds <-findTX(id=splice_data$data[1,]$GeneID,tx=thecds,db=txdb,valid=FALSE)
+#' valid_cds <-findTX(id=splice_data$data[2,]$ID,tx=thecds,db=txdb,valid=FALSE)
 findTX <- function(id,db,tx,valid=FALSE){
   options(warn=-1)
   txid <- suppressMessages(try(select(db,keys=id,columns="TXNAME","GENEID")[["TXNAME"]],TRUE))
@@ -1145,7 +1145,7 @@ eventOutcomeTranslate<-function(seq1,genome,direction=FALSE,fullseq=TRUE){
 #'
 #' @return a Gviz plot of genomic region
 #'
-#' @import graphics Gviz
+#' @import GenomicRanges graphics Gviz
 #' @export
 #' @author Diana Low
 #'
@@ -1362,6 +1362,7 @@ psiPlot <- function (df=NULL,type="MATS",sample_labels=c("Sample 1", "Sample 2")
 #' @return GRanges or GRangesList
 #'
 #' @import IRanges
+#' @importFrom methods is
 #' @keywords internal
 metaremove <- function(x) {
   if (is(x, "GRangesList")) return(endoapply(x, metaremove))
