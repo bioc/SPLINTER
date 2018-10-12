@@ -1,3 +1,186 @@
+#' annotateEvents
+#'
+#' Gives detailed description of splicing event in terms of splicing outcome
+#' post translation. Currently supports exon skipping and intron retention events.
+#'
+#' @param thedata list. output of extractSpliceEvents.
+#' @param db TxDb object
+#' @param bsgenome BSGenome object
+#' @param outputdir character. relative output directory to current location.
+#' @param full_output logical. writes out detailed text report and generate figures.
+#' @param output_prefix character. text prefix for full_output files.
+#'
+#' @return list containing information on
+#' (1) data.frame with splicing regions
+#' (2) splice event type
+#'
+#'
+#' @author Diana LOW
+#'
+#' @import GenomicFeatures googleVis ggplot2 grDevices
+#' @export
+annotateEvents <- function(thedata,db,bsgenome,outputdir,full_output=FALSE,output_prefix="results"){
+  df<-thedata$data
+  thecds<-cdsBy(db,by="tx",use.names=TRUE)
+  theexons<-exonsBy(db,by="tx",use.names=TRUE)
+
+  if(full_output){
+    closeAllConnections() # to prevent writing errors
+    r_file_name.ls<-c()
+    p_file_name.ls<-c()
+    ifelse(!dir.exists(file.path(getwd(), outputdir)), dir.create(file.path(getwd(), outputdir)), FALSE)
+    ifelse(!dir.exists(file.path(getwd(), outputdir,"text")), dir.create(file.path(getwd(), outputdir,"text")), FALSE)
+    ifelse(!dir.exists(file.path(getwd(), outputdir,"img")), dir.create(file.path(getwd(), outputdir,"img")), FALSE)
+  }
+
+  loops=nrow(df)
+  loop_frame=list(data=cbind.data.frame(seq_id=seq.int(nrow(df[1:loops,])),
+                                        df[1:loops,],
+                                        event=thedata$type,
+                                        VALID_TX='',VALID_CDS='',
+                                        COMPATIBLE_TX='',COMPATIBLE_CDS='',
+                                        ASoutcome1='',ASoutcome2='',
+                                        #AALENGTH1="",AALENGTH2="",
+                                        stringsAsFactors=F),type=thedata$type)
+
+  for(i in 1:nrow(loop_frame$data)){
+    if(full_output){
+      r_file_name<-paste("text","/",loop_frame$data[i,]$seq_id,"_",loop_frame$data$ID[i],"_",output_prefix,"_full_report.txt",sep="")
+      p_file_name<-paste("img","/",loop_frame$data[i,]$seq_id,"_",loop_frame$data$ID[i],"_",output_prefix,"_full_report.png",sep="")
+      r_file_name.ls<-c(r_file_name.ls,r_file_name)
+      zz <- file(paste(file.path(getwd(),outputdir),"/",r_file_name,sep=""), open="wt")
+      sink(zz)
+      sink(zz, type="message")
+    }
+
+    message('==================================================')
+    message(paste("Checking",loop_frame$data$ID[i],loop_frame$data$geneSymbol[i]))
+    message(paste(loop_frame$data[i,]$seq_id,loop_frame$data[i,]$uID,sep="_"))
+
+    message('--> Finding valid transcripts')
+    valid_tx <- findTX(id=loop_frame$data[i,]$ID,tx=theexons,db=db,valid=FALSE)
+
+    message('--> Finding valid coding transcripts')
+    valid_cds <- findTX(id=loop_frame$data[i,]$ID,tx=thecds,db=db,valid=FALSE)
+
+    if(length(valid_tx)==0){
+      message("** no valid transcripts found, skipping to next event.")
+      p_file_name.ls<-c(p_file_name.ls,"")
+      next
+    }
+
+    if(length(valid_cds)==0){
+      message("** no valid coding transcripts found, skipping to next event.")
+      p_file_name.ls<-c(p_file_name.ls,"")
+      next
+    }
+
+    roi <- makeROI(loop_frame$data[i,],type=thedata$type)
+
+    message('--> Finding compatible transcripts')
+    compatible_tx_events<-findCompatibleEvents(valid_tx,roi=roi,verbose=FALSE) #use tx
+
+    loop_frame$data[i,]$VALID_TX<-as.numeric(length(valid_tx))
+
+    ### Check for compatible transcripts ###
+    if(length(compatible_tx_events$hits)==0){
+      message('.... no compatible transcripts found. skipping to next event.')
+      p_file_name.ls<-c(p_file_name.ls,"")
+      #loop_frame$data[i,]$ASoutcome<-"no compatible transcripts"
+      next
+    }
+    p_file_name.ls<-c(p_file_name.ls,p_file_name)
+    png(paste(file.path(getwd(),outputdir),"/",p_file_name,sep=""),width = 1000,height = 800)
+    eventPlot(transcripts=valid_tx,roi_plot=roi,annoLabel=loop_frame$data[i,]$ID,rspan=2000)
+    dev.off()
+
+    message(paste("....",length(compatible_tx_events$hits),"compatible transcripts found. check if coding..."))
+    loop_frame$data[i,]$COMPATIBLE_TX<-paste(length(compatible_tx_events$hits[[1]]),
+                                             length(compatible_tx_events$hits[[2]]),sep=",")
+
+    message('--> Finding compatible coding transcripts')
+    compatible_cds_events<-findCompatibleEvents(valid_cds,roi=roi,verbose=FALSE) #use tx
+    loop_frame$data[i,]$VALID_CDS<-as.numeric(length(valid_cds))
+
+    ### Check for compatible cds transcripts ###
+    if(length(compatible_cds_events$hits)==0){
+      message("--> no compatible coding transcripts")
+      loop_frame$data[i,]$ASoutcome<-"no compatible CDS"
+      next
+    }
+
+    message("--> Looking for CDS transcripts with full cassette")
+    if(length(compatible_cds_events$hits[[1]])!=0){
+      message(paste("....",length(compatible_cds_events$hits[[1]]),"found."))
+      #continue with exon skipping
+      if(loop_frame$data[i,]$event=='SE') {
+        newregion<-removeRegion(compatible_cds_events$hits[[1]],roi)
+      } else if(loop_frame$data[i,]$event=='RI') {
+        newregion<-insertRegion(compatible_cds_events$hits[[1]],roi)
+      }
+      ans<-eventOutcomeCompare(compatible_cds_events$hits[[1]],newregion,bsgenome,direction=loop_frame$data[i,]$IncLevelDifference>0)
+      loop_frame$data[i,]$ASoutcome1<-ans$eventtypes
+    } else {
+      message(".... None found.")
+    }
+
+    message("**** Looking for CDS transcripts with skipped cassette")
+    if(length(compatible_cds_events$hits[[2]])!=0){
+      #message("**** no compatible coding transcripts of type1")
+      #loop_frame$data[i,]$ASoutcome<-"no type1 CDS, possible insertion"
+
+      #have transcripts of type 2
+      #do exon insertion
+      message(paste("....",length(compatible_cds_events$hits[[2]]),"found."))
+      if(loop_frame$data[i,]$event=='SE') {
+        newregion<-insertRegion(compatible_cds_events$hits[[2]],roi)
+      } else if(loop_frame$data[i,]$event=='RI') {
+        newregion<-removeRegion(compatible_cds_events$hits[[2]],roi)
+      }
+      ans<-eventOutcomeCompare(compatible_cds_events$hits[[2]],newregion,bsgenome,direction=loop_frame$data[i,]$IncLevelDifference>0)
+      loop_frame$data[i,]$ASoutcome2<-ans$eventtypes
+    } else {
+      message(".... None found.")
+    }
+
+
+
+    loop_frame$data[i,]$COMPATIBLE_CDS<-paste(length(compatible_cds_events$hits[[1]]),
+                                              length(compatible_cds_events$hits[[2]]),sep=",")
+
+    if(full_output){
+      sink()
+      closeAllConnections()
+    }
+    # if(loop_frame$data[i,]$event=='SE') {
+    #   newregion<-removeRegion(compatible_cds_events$hits[[1]],roi)
+    # } else if(loop_frame$data[i,]$event=='RI') {
+    #   newregion<-insertRegion(compatible_cds_events$hits[[1]],roi)
+    # }
+    #print(fpkm.vals3[fpkm.vals3$nearest_ref_id %in% names(compatible_events$hits),])
+
+    # ans<-eventOutcomeCompare(compatible_cds_events$hits[[1]],newregion,bsgenome,direction=loop_frame$data[i,]$IncLevelDifference>0)
+    #loop_frame$data[i,]$AALENGTH1<-paste(eventOutcomeTranslate(compatible_cds_events,genome=bsgenome,fullseq = FALSE)[[1]],collapse=",")
+    #loop_frame$data[i,]$AALENGTH2<-paste(eventOutcomeTranslate(compatible_cds_events,genome=bsgenome,fullseq = FALSE)[[2]],collapse=",")
+  }
+
+  columns_to_take<-c("seq_id","ID","Symbol","uID",
+                     "PValue","FDR","IncLevel1","IncLevel2","IncLevelDifference",
+                     "VALID_TX","VALID_CDS",
+                     "COMPATIBLE_TX","COMPATIBLE_CDS",
+                     "ASoutcome1","ASoutcome2")
+  loop_frame$data<-loop_frame$data[,columns_to_take]
+  if(full_output){
+    ID <- uID <- NULL # Setting the variables to NULL first
+    loop_frame$data[p_file_name.ls!="",]<-transform(loop_frame$data[p_file_name.ls!="",], uID = paste('<a href = ', shQuote(p_file_name.ls[p_file_name.ls!=""]), '>', uID, '</a>',sep=''))
+    loop_frame$data <- transform(loop_frame$data, ID = paste('<a href = ', shQuote(r_file_name.ls), '>', ID, '</a>',sep=''))
+    x = gvisTable(loop_frame$data, options = list(allowHTML = TRUE))
+    print(x,file=paste(file.path(getwd(), outputdir),"/report.html",sep=""))
+  }
+  sink(type="message")
+  closeAllConnections()
+  return(loop_frame)
+}
 
 #' extractSpliceEvents
 #'
@@ -354,7 +537,7 @@ makeUniqueIDs<-function(ddata){
 #' splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
 addEnsemblAnnotation<-function(data,species='hsapiens'){
   df<-data$data
-  ensembl<-useMart("ensembl",host = "asia.ensembl.org",dataset=paste(species,"_gene_ensembl",sep=""))
+  ensembl<-useMart("ensembl",dataset=paste(species,"_gene_ensembl",sep=""))
   values<-df$ID
   tt<-getBM(attributes=c('ensembl_gene_id','wikigene_name'),
             filters = 'ensembl_gene_id', values = values, mart = ensembl)
@@ -376,6 +559,7 @@ addEnsemblAnnotation<-function(data,species='hsapiens'){
 #' @param db TxDb object
 #' @param tx GRangesList
 #' @param valid logical. check if in multiples of 3 [TRUE] for CDS translation.
+#' @param verbose logical. turn messages on/off.
 #'
 #' @return GRangesList
 #'
@@ -386,7 +570,7 @@ addEnsemblAnnotation<-function(data,species='hsapiens'){
 #'
 #' @examples
 #' valid_cds <-findTX(id=splice_data$data[2,]$ID,tx=thecds,db=txdb,valid=FALSE)
-findTX <- function(id,db,tx,valid=FALSE){
+findTX <- function(id,db,tx,valid=FALSE,verbose=FALSE){
   options(warn=-1)
   txid <- suppressMessages(try(select(db,keys=id,columns="TXNAME","GENEID")[["TXNAME"]],TRUE))
   if(class(txid)!="try-error") {
@@ -400,12 +584,15 @@ findTX <- function(id,db,tx,valid=FALSE){
     tx=GRanges()
   }
 
-  if(length(tx)>0) {
-    message(paste(names(tx),"\n"))
-    message(length(tx)," valid transcripts found.")
-  } else {
-    message("No valid transcripts found.")
+  if(verbose){
+    if(length(tx)>0) {
+      message(paste(names(tx),"\n"))
+      message(length(tx)," valid transcripts found.")
+    } else {
+      message("No valid transcripts found.")
+    }
   }
+
   return(tx)
   options(warn=1)
 }
@@ -870,6 +1057,7 @@ findTermination <-function(s1){
 #' @param genome BSGenome object
 #' @param direction logical. Report direction of sequence change.
 #' @param fullseq logical. Report full sequences.
+#' @param verbose logical. turn messages on/off.
 #'
 #' @return list containing\cr
 #'   (1) tt : PairwiseAlignmentsSingleSubject pairwise alignment\cr
@@ -884,7 +1072,7 @@ findTermination <-function(s1){
 #' bsgenome<-BSgenome.Mmusculus.UCSC.mm9
 #' eventOutcomeCompare(seq1=compatible_cds$hits[[1]],seq2=region_minus_exon,
 #'  genome=bsgenome,direction=TRUE)
-eventOutcomeCompare <- function(seq1,seq2=NULL,genome,direction=TRUE,fullseq=TRUE){
+eventOutcomeCompare <- function(seq1,seq2=NULL,genome,direction=TRUE,fullseq=TRUE,verbose=FALSE){
   #gapOpening=-5; gapExtension=-1
   gapOpening=10; gapExtension=0.5
 
@@ -917,21 +1105,35 @@ eventOutcomeCompare <- function(seq1,seq2=NULL,genome,direction=TRUE,fullseq=TRU
 
     if(ft$s1==ft2$s1){
       result='(no change)'
+      message("No change in protein.")
     }
     else {
       if(ft2$stop1!=0){
         distanceupstream=(ft$stop1-ft2$stop1)*3
 
         #if negative difference, retained intron, new protein
-        if(distanceupstream<0) result='(alt protein)'
+        if(distanceupstream<0) {
+          result='(ALT)'
+          message("Alternative protein.")
+          }
+
 
         #if positive difference, and more than 50bp from last exon
-        else if(distanceupstream-wlastexon>=50) result='(NMD)'
+        else if(distanceupstream-wlastexon>=50) {
+          result='(NMD)'
+          message("Nonsense mediated decay.")
+          }
+
 
         #if positive difference, but not more than 50, consider it truncation
-        else if(distanceupstream-wlastexon<50)  result='(truncated protein)'
+        else if(distanceupstream-wlastexon<50)  {
+          result='(TP)'
+          message("Truncated protein.")
+          }
+
       } else {
-        result='(no termination codon)'
+        result='(NTC)'
+        message("No termination codon.")
       }
     }
 
@@ -959,8 +1161,8 @@ eventOutcomeCompare <- function(seq1,seq2=NULL,genome,direction=TRUE,fullseq=TRU
     nmm<-nmismatch(tt)
 
     if(length(inserts[[1]])==0 & length(deletes[[1]])==0 & nmm==0 & ft$s1==ft2$s1){
-      result=="(no change)"
-      main_etype='no change, possibly a non-transcribed isoform'
+      result="(NC)"
+      main_etype='No change, possibly a non-transcribed isoform'
       elocation=""
       message(elocation," ",main_etype,result)
     } else {
@@ -1060,6 +1262,8 @@ eventOutcomeCompare <- function(seq1,seq2=NULL,genome,direction=TRUE,fullseq=TRU
 #' @param genome BSGenome object
 #' @param direction logical. Report direction of sequence change.
 #' @param fullseq logical. Output full AA sequence.
+#' @param verbose logical. turn messages on/off.
+#'
 #' @return list of translated sequences
 #'
 #' @import Biostrings BSgenome.Mmusculus.UCSC.mm9
@@ -1072,8 +1276,7 @@ eventOutcomeCompare <- function(seq1,seq2=NULL,genome,direction=TRUE,fullseq=TRU
 #' bsgenome<-BSgenome.Mmusculus.UCSC.mm9
 #' translation_results<-eventOutcomeTranslate(compatible_cds,genome=bsgenome,
 #'  direction=TRUE)
-eventOutcomeTranslate<-function(seq1,genome,direction=FALSE,fullseq=TRUE){
-  verbose=TRUE
+eventOutcomeTranslate<-function(seq1,genome,direction=FALSE,fullseq=TRUE,verbose=FALSE){
   totalOutcomes<-list()
   gapOpening=-5
   gapExtension=-1
@@ -1089,7 +1292,7 @@ eventOutcomeTranslate<-function(seq1,genome,direction=FALSE,fullseq=TRUE){
     outcomes<-c()
     if(verbose) message("Translating for Type ",r)
     if(length(seq1$hits[[r]])==0) {
-      message("No transcripts available.")
+      if(verbose) message("No transcripts available.")
       outcomes<-"*"
     } else {
       prot_seq1<-Biostrings::translate(extractTranscriptSeqs(genome,seq1$hits[[r]]))
@@ -1101,9 +1304,9 @@ eventOutcomeTranslate<-function(seq1,genome,direction=FALSE,fullseq=TRUE){
         wlastexon<-width(thetranscript)[length(thetranscript)]
         #wlastexon2<-width(unlist(ranges(seq2[i])))[length(granges(unlist(seq2[i])))]
         ft<-findTermination(prot_seq1[i])
-        if(ft$stop1==0) if(verbose) message("Sequence1 - no stop codon")
-
-        if(ft$stop1!=0){
+        if(ft$stop1==0) {
+          if(verbose) message("Sequence has no stop codon")
+        } else if(ft$stop1!=0){
           distanceupstream=sum(width(thetranscript))-(ft$stop1)*3
 
           #if negative difference, retained intron, new protein
@@ -1361,7 +1564,7 @@ psiPlot <- function (df=NULL,type="MATS",sample_labels=c("Sample 1", "Sample 2")
 #'
 #' @return GRanges or GRangesList
 #'
-#' @import IRanges
+#' @import IRanges S4Vectors
 #' @importFrom methods is
 #' @keywords internal
 metaremove <- function(x) {

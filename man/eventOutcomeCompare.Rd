@@ -5,7 +5,7 @@
 \title{eventOutcomeCompare}
 \usage{
 eventOutcomeCompare(seq1, seq2 = NULL, genome, direction = TRUE,
-  fullseq = TRUE)
+  fullseq = TRUE, verbose = FALSE)
 }
 \arguments{
 \item{seq1}{GRangesList}
@@ -17,6 +17,8 @@ eventOutcomeCompare(seq1, seq2 = NULL, genome, direction = TRUE,
 \item{direction}{logical. Report direction of sequence change.}
 
 \item{fullseq}{logical. Report full sequences.}
+
+\item{verbose}{logical. turn messages on/off.}
 }
 \value{
 list containing\cr

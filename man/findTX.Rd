@@ -4,7 +4,7 @@
 \alias{findTX}
 \title{findTX}
 \usage{
-findTX(id, db, tx, valid = FALSE)
+findTX(id, db, tx, valid = FALSE, verbose = FALSE)
 }
 \arguments{
 \item{id}{character. transcript identification (currently ENSEMBL gene names)}
@@ -14,6 +14,8 @@ findTX(id, db, tx, valid = FALSE)
 \item{tx}{GRangesList}
 
 \item{valid}{logical. check if in multiples of 3 [TRUE] for CDS translation.}
+
+\item{verbose}{logical. turn messages on/off.}
 }
 \value{
 GRangesList

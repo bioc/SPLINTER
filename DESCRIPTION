@@ -1,8 +1,8 @@
 Package: SPLINTER
 Type: Package
 Title: Splice Interpreter Of Transcripts
-Version: 1.7.2
-Date: 2018-06-20
+Version: 1.7.3
+Date: 2018-10-11
 Authors@R: c(person("Diana", "Low", role = c("aut", "cre"),email =
         "dlow@imcb.a-star.edu.sg"))
 Author: Diana Low
@@ -17,9 +17,10 @@ Depends: R (>= 3.4.0), grDevices, stats
 Imports: graphics, ggplot2, seqLogo, Biostrings, biomaRt,
         GenomicAlignments, GenomicRanges, GenomicFeatures, Gviz,
         IRanges, S4Vectors, GenomeInfoDb, utils, plyr,stringr, methods,
-        BSgenome.Mmusculus.UCSC.mm9
+        BSgenome.Mmusculus.UCSC.mm9, googleVis
 biocViews: GeneExpression, RNASeq, Visualization, AlternativeSplicing
 Collate: primerpcr.R main_splinter.R
-RoxygenNote: 6.0.1
+Encoding: UTF-8
+RoxygenNote: 6.1.0
 VignetteBuilder: knitr
 Suggests: BiocStyle, knitr, rmarkdown

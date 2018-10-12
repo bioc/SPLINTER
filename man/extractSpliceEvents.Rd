@@ -4,8 +4,8 @@
 \alias{extractSpliceEvents}
 \title{extractSpliceEvents}
 \usage{
-extractSpliceEvents(data = NULL, filetype = "mats", splicetype = "SE",
-  fdr = 1, inclusion = 1, start0 = TRUE)
+extractSpliceEvents(data = NULL, filetype = "mats",
+  splicetype = "SE", fdr = 1, inclusion = 1, start0 = TRUE)
 }
 \arguments{
 \item{data}{character. path to file}

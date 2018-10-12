@@ -4,7 +4,8 @@
 \alias{eventOutcomeTranslate}
 \title{eventOutcomeTranslate}
 \usage{
-eventOutcomeTranslate(seq1, genome, direction = FALSE, fullseq = TRUE)
+eventOutcomeTranslate(seq1, genome, direction = FALSE, fullseq = TRUE,
+  verbose = FALSE)
 }
 \arguments{
 \item{seq1}{GRangesList}
@@ -14,6 +15,8 @@ eventOutcomeTranslate(seq1, genome, direction = FALSE, fullseq = TRUE)
 \item{direction}{logical. Report direction of sequence change.}
 
 \item{fullseq}{logical. Output full AA sequence.}
+
+\item{verbose}{logical. turn messages on/off.}
 }
 \value{
 list of translated sequences
