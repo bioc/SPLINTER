@@ -537,7 +537,7 @@ makeUniqueIDs<-function(ddata){
 #' splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
 addEnsemblAnnotation<-function(data,species='hsapiens'){
   df<-data$data
-  ensembl<-useMart("ensembl",dataset=paste(species,"_gene_ensembl",sep=""))
+  ensembl<-useMart("ENSEMBL_MART_ENSEMBL",dataset=paste(species,"_gene_ensembl",sep=""))
   values<-df$ID
   tt<-getBM(attributes=c('ensembl_gene_id','wikigene_name'),
             filters = 'ensembl_gene_id', values = values, mart = ensembl)
@@ -1009,7 +1009,7 @@ insertRegion <- function(subject,roi){
     current<-s2[[tx]]
     current<-append(current,roi,after=0)
     current<-reduce(current)
-    if(as.character(strand(current))=="-") current<-rev(current)
+    if(as.character(strand(current))[1]=="-") current<-rev(current)
     elementMetadata(current) <- DataFrame(exon_rank=seq(1,length(current)))
     s2[[tx]]<-current
   }
