@@ -1,13 +1,13 @@
 Package: SPLINTER
 Type: Package
-Title: Splice Interpreter Of Transcripts
-Version: 1.11.2
-Date: 2019-06-28
+Title: Splice Interpreter of Transcripts
+Version: 1.11.3
+Date: 2019-09-17
 Authors@R: c(person("Diana", "Low", role = c("aut", "cre"),email =
         "lowdiana@gmail.com"))
 Author: Diana Low
 Maintainer: Diana Low <lowdiana@gmail.com>
-Description: SPLINTER provides tools to analyze alternative splicing
+Description: Provides tools to analyze alternative splicing
         sites, interpret outcomes based on sequence information, select
         and design primers for site validiation and give visual
         representation of the event to guide downstream experiments.

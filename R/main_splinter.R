@@ -935,8 +935,6 @@ extendROI<-function(roi,tx,up=0,down=0,type=1){
 
   # 5. extend range
   message("Extending exon to #",qh[1]-up,", #",qh[2]+down)
-  vfso<-as(vfso,"SimpleList")
-  evfso<-as(evfso,"SimpleList")
   roi$roi_range[[2]]<-metaremove(vfso[[1]][c(queryHits(evfso)[1]-up,queryHits(evfso)[2]+down)])
   roi$roi_range[[1]]<-reduce(c(metaremove(roi$roi),roi$roi_range[[2]]))
 
