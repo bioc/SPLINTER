@@ -41,7 +41,7 @@ annotateEvents <- function(thedata,db,bsgenome,outputdir,full_output=FALSE,outpu
                                         COMPATIBLE_TX='',COMPATIBLE_CDS='',
                                         ASoutcome1='',ASoutcome2='',
                                         #AALENGTH1="",AALENGTH2="",
-                                        stringsAsFactors=F),type=thedata$type)
+                                        stringsAsFactors=FALSE),type=thedata$type)
 
   for(i in 1:nrow(loop_frame$data)){
     if(full_output){
@@ -355,10 +355,9 @@ extractSpliceSites <- function(df,target="SE",site='donor',
 #'
 #' @examples
 #' head(splice_fasta)
-#' test<-Biostrings::DNAStringSet(splice_fasta$V2)
-#' plot_seqlogo(test)
+#' plot_seqlogo(Biostrings::DNAStringSet(splice_fasta$V2))
 plot_seqlogo <-function(fasta_seq){
-  if(class(fasta_seq)!="DNAStringSet")
+  if(class(test)!="DNAStringSet")
     fasta_seq<-suppressWarnings(readDNAStringSet(fasta_seq))
   freq<-consensusMatrix(fasta_seq,as.prob=TRUE)[1:4,]
   freq<-data.frame(freq)
@@ -442,8 +441,8 @@ shapiroDonor<-function(reference_fasta,target_fasta){
 #' acceptor.ss<-getSeq(bsgenome,splice_sites)
 #' sacceptor<-shapiroAcceptor(acceptor.m,acceptor.ss)
 shapiroAcceptor<-function(reference_fasta,target_fasta){
-  #if(class(reference_fasta)!="DNAStringSet") reference_fasta<-suppressWarnings(readDNAStringSet(reference_fasta))
-  if(class(target_fasta)!="DNAStringSet") target_fasta<-suppressWarnings(readDNAStringSet(target_fasta))
+  if(class(target_fasta)!="DNAStringSet")
+    target_fasta<-suppressWarnings(readDNAStringSet(target_fasta))
 
   #consensusMatrix(reference_fasta,as.prob=T)[1:4,]
   if(class(reference_fasta)!="matrix") {
@@ -573,7 +572,7 @@ addEnsemblAnnotation<-function(data,species='hsapiens'){
 findTX <- function(id,db,tx,valid=FALSE,verbose=FALSE){
   options(warn=-1)
   txid <- suppressMessages(try(select(db,keys=id,columns="TXNAME","GENEID")[["TXNAME"]],TRUE))
-  if(class(txid)!="try-error") {
+  if(!is(class(txid),"try-error")) {
     tx<-tx[names(tx) %in% txid]
     if(valid){
       tx_width<-width(tx)
@@ -935,7 +934,7 @@ extendROI<-function(roi,tx,up=0,down=0,type=1){
 
   # 5. extend range
   message("Extending exon to #",qh[1]-up,", #",qh[2]+down)
-  roi$roi_range[[2]]<-metaremove(vfso[[1]][c(queryHits(evfso)[1]-up,queryHits(evfso)[2]+down)])
+  roi$roi_range[[2]]<-metaremove(vfso[[1]][c(qh[1]-up,qh[2]+down)])
   roi$roi_range[[1]]<-reduce(c(metaremove(roi$roi),roi$roi_range[[2]]))
 
   ss<-as.character(strand(roi$roi))
