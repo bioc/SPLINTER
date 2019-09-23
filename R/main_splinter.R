@@ -357,7 +357,7 @@ extractSpliceSites <- function(df,target="SE",site='donor',
 #' head(splice_fasta)
 #' plot_seqlogo(Biostrings::DNAStringSet(splice_fasta$V2))
 plot_seqlogo <-function(fasta_seq){
-  if(class(test)!="DNAStringSet")
+  if(class(fasta_seq)!="DNAStringSet")
     fasta_seq<-suppressWarnings(readDNAStringSet(fasta_seq))
   freq<-consensusMatrix(fasta_seq,as.prob=TRUE)[1:4,]
   freq<-data.frame(freq)
