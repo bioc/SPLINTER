@@ -391,7 +391,7 @@ plot_seqlogo <-function(fasta_seq){
 #' splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
 #' splice_sites<-extractSpliceSites(splice_data)
 #' donor.ss<-getSeq(bsgenome,splice_sites)
-#' sdonor<-shapiroDonor(donor.m,donor.ss)
+#' #sdonor<-shapiroDonor(donor.m,donor.ss)
 shapiroDonor<-function(reference_fasta,target_fasta){
   if(class(reference_fasta)!="matrix") {
     rpwm<-as.matrix(read.table(reference_fasta,row.names=1))/100#consensusMatrix(reference_fasta,as.prob=T)[1:4,]
@@ -439,7 +439,7 @@ shapiroDonor<-function(reference_fasta,target_fasta){
 #' splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
 #' splice_sites<-extractSpliceSites(splice_data,site="acceptor")
 #' acceptor.ss<-getSeq(bsgenome,splice_sites)
-#' sacceptor<-shapiroAcceptor(acceptor.m,acceptor.ss)
+#' #sacceptor<-shapiroAcceptor(acceptor.m,acceptor.ss)
 shapiroAcceptor<-function(reference_fasta,target_fasta){
   if(class(target_fasta)!="DNAStringSet")
     target_fasta<-suppressWarnings(readDNAStringSet(target_fasta))
@@ -533,7 +533,7 @@ makeUniqueIDs<-function(ddata){
 #' @examples
 #' data_path<-system.file("extdata",package="SPLINTER")
 #' splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
-#' splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
+#' #splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
 addEnsemblAnnotation<-function(data,species='hsapiens'){
   df<-data$data
   ensembl<-useMart("ENSEMBL_MART_ENSEMBL",dataset=paste(species,"_gene_ensembl",sep=""))

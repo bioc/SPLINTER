@@ -8,7 +8,7 @@ abstract:
 vignette: >
   %\VignetteIndexEntry{SPLINTER}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  \usepackage[UTF-8]{inputenc}
 output: 
   BiocStyle::pdf_document
 ---
@@ -82,7 +82,7 @@ splice_data$data[,c(1:10)]
 ## Additional annotation
 `r Biocpkg("SPLINTER")` assumes that the main identifier is ENSEMBL, however gene symbols can be added.
 ```{r}
-splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
+#splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
 
 # (Optional) Sorting the dataframe, if you have supporting statistical information
 splice_data$data<-splice_data$data[with(splice_data$data,order(FDR,-IncLevelDifference)),]
