@@ -4,8 +4,7 @@
 \alias{findCompatibleEvents}
 \title{findCompatibleEvents}
 \usage{
-findCompatibleEvents(tx, tx2 = NULL, roi, sequential = TRUE,
-  verbose = FALSE)
+findCompatibleEvents(tx, tx2 = NULL, roi, sequential = TRUE, verbose = FALSE)
 }
 \arguments{
 \item{tx}{GRangesList object of transcripts}

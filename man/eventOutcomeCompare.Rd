@@ -4,8 +4,14 @@
 \alias{eventOutcomeCompare}
 \title{eventOutcomeCompare}
 \usage{
-eventOutcomeCompare(seq1, seq2 = NULL, genome, direction = TRUE,
-  fullseq = TRUE, verbose = FALSE)
+eventOutcomeCompare(
+  seq1,
+  seq2 = NULL,
+  genome,
+  direction = TRUE,
+  fullseq = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{seq1}{GRangesList}

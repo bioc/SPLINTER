@@ -4,11 +4,16 @@
 \alias{callPrimer3}
 \title{callPrimer3}
 \usage{
-callPrimer3(seq, size_range = "150-500", Tm = c(57, 59, 62),
-  name = "Primer1", primer3 = "primer3-2.3.7/bin/primer3_core",
+callPrimer3(
+  seq,
+  size_range = "150-500",
+  Tm = c(57, 59, 62),
+  name = "Primer1",
+  primer3 = "primer3-2.3.7/bin/primer3_core",
   thermo.param = "primer3-2.3.7/src/primer3_config/",
   sequence_target = NULL,
-  settings = "primer3-2.3.7/primer3web_v4_0_0_default_settings.txt")
+  settings = "primer3-2.3.7/primer3web_v4_0_0_default_settings.txt"
+)
 }
 \arguments{
 \item{seq}{DNAstring object, one DNA string for the given amplicon}

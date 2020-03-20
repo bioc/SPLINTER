@@ -31,7 +31,7 @@ data_path<-system.file("extdata",package="SPLINTER")
 splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
 splice_sites<-extractSpliceSites(splice_data,site="acceptor")
 acceptor.ss<-getSeq(bsgenome,splice_sites)
-sacceptor<-shapiroAcceptor(acceptor.m,acceptor.ss)
+##sacceptor<-shapiroAcceptor(acceptor.m,acceptor.ss)
 }
 \seealso{
 \url{http://www.softberry.com/spldb/SpliceDB.html}

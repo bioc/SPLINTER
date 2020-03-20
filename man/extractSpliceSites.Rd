@@ -4,8 +4,13 @@
 \alias{extractSpliceSites}
 \title{extractSpliceSites}
 \usage{
-extractSpliceSites(df, target = "SE", site = "donor",
-  motif_range = c(-3, 6), start0 = TRUE)
+extractSpliceSites(
+  df,
+  target = "SE",
+  site = "donor",
+  motif_range = c(-3, 6),
+  start0 = TRUE
+)
 }
 \arguments{
 \item{df}{extractSpliceEvents object}

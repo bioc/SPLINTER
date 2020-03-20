@@ -4,9 +4,16 @@
 \alias{eventPlot}
 \title{eventPlot}
 \usage{
-eventPlot(transcripts, roi_plot = NULL, bams = c(), names = c(),
-  annoLabel = c("Gene A"), rspan = 1000, pfam_dom = NULL,
-  showAll = TRUE)
+eventPlot(
+  transcripts,
+  roi_plot = NULL,
+  bams = c(),
+  names = c(),
+  annoLabel = c("Gene A"),
+  rspan = 1000,
+  pfam_dom = NULL,
+  showAll = TRUE
+)
 }
 \arguments{
 \item{transcripts}{GRanges object}

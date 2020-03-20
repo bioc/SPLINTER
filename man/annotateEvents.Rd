@@ -4,8 +4,14 @@
 \alias{annotateEvents}
 \title{annotateEvents}
 \usage{
-annotateEvents(thedata, db, bsgenome, outputdir, full_output = FALSE,
-  output_prefix = "results")
+annotateEvents(
+  thedata,
+  db,
+  bsgenome,
+  outputdir,
+  full_output = FALSE,
+  output_prefix = "results"
+)
 }
 \arguments{
 \item{thedata}{list. output of extractSpliceEvents.}

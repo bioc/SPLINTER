@@ -21,7 +21,7 @@ Adds annotation to \code{\link{extractSpliceEvents}} object (if not present)
 \examples{
 data_path<-system.file("extdata",package="SPLINTER")
 splice_data<-extractSpliceEvents(data=paste(data_path,"/skipped_exons.txt",sep=""))
-splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
+#splice_data<-addEnsemblAnnotation(data=splice_data,species="mmusculus")
 }
 \seealso{
 \url{http://asia.ensembl.org/info/data/biomart/biomart_r_package.html#biomartexamples}

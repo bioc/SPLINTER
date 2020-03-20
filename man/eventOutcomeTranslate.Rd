@@ -4,8 +4,13 @@
 \alias{eventOutcomeTranslate}
 \title{eventOutcomeTranslate}
 \usage{
-eventOutcomeTranslate(seq1, genome, direction = FALSE, fullseq = TRUE,
-  verbose = FALSE)
+eventOutcomeTranslate(
+  seq1,
+  genome,
+  direction = FALSE,
+  fullseq = TRUE,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{seq1}{GRangesList}

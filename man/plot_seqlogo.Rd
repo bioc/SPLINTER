@@ -17,8 +17,7 @@ Plots the sequence logo of a given set of FASTA sequences
 }
 \examples{
 head(splice_fasta)
-test<-Biostrings::DNAStringSet(splice_fasta$V2)
-plot_seqlogo(test)
+plot_seqlogo(Biostrings::DNAStringSet(splice_fasta$V2))
 }
 \author{
 Diana Low

@@ -4,8 +4,7 @@
 \alias{psiPlot}
 \title{psiPlot}
 \usage{
-psiPlot(df = NULL, type = "MATS", sample_labels = c("Sample 1",
-  "Sample 2"))
+psiPlot(df = NULL, type = "MATS", sample_labels = c("Sample 1", "Sample 2"))
 }
 \arguments{
 \item{df}{data.frame containing PSI values}
