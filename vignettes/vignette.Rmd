@@ -43,6 +43,7 @@ object.
 ```{r,message=FALSE}
 data_path<-system.file("extdata",package="SPLINTER")
 gtf_file<-paste(data_path,"/Mus_musculus.Ensembl.NCBIM37.65.partial.gtf",sep="")
+library(txdbmaker)
 txdb <- makeTxDbFromGFF(file=gtf_file,chrominfo = Seqinfo(genome="mm9"))
 
 # txdb generation can take quite long, you can save the object and load it the next time

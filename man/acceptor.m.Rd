@@ -16,7 +16,7 @@ Acceptor site mammalian frequency matrices for GT-AG pairs from SpliceDB
   ..$ : chr [1:15] "V1" "V2" "V3" "V4" ...
 }
 \source{
-url{http://www.softberry.com/spldb/SpliceDB.html}
+\url{http://www.softberry.com/spldb/SpliceDB.html}
 }
 \references{
 Burset M., Seledtsov I., Solovyev V. (Nucl.Acids Res.,2000,28,4364-4375; Nucl. Acids Res.,2001,29,255-259)
