@@ -1,8 +1,8 @@
 Package: SPLINTER
 Type: Package
 Title: Splice Interpreter of Transcripts
-Version: 1.13.3
-Date: 2020-03-23
+Version: 1.13.4
+Date: 2024-03-19
 Authors@R: person("Diana", "Low",  email = "lowdiana@gmail.com",
         role = c("aut", "cre"))
 URL: https://github.com/dianalow/SPLINTER/
@@ -23,4 +23,4 @@ Collate: primerpcr.R main_splinter.R
 Encoding: UTF-8
 RoxygenNote: 7.1.0
 VignetteBuilder: knitr
-Suggests: BiocStyle, knitr, rmarkdown
+Suggests: txdbmaker, BiocStyle, knitr, rmarkdown
