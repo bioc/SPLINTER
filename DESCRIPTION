@@ -1,8 +1,8 @@
 Package: SPLINTER
 Type: Package
 Title: Splice Interpreter of Transcripts
-Version: 1.29.1
-Date: 2024-03-19
+Version: 1.29.2
+Date: 2024-04-24
 Authors@R: person("Diana", "Low",  email = "lowdiana@gmail.com",
         role = c("aut", "cre"))
 URL: https://github.com/dianalow/SPLINTER/
@@ -14,13 +14,13 @@ Description: Provides tools to analyze alternative splicing
 License: GPL-2
 LazyData: TRUE
 Depends: R (>= 3.6.0), grDevices, stats
-Imports: graphics, ggplot2, seqLogo, Biostrings, biomaRt,
+Imports: graphics, ggplot2, seqLogo, Biostrings, pwalign, biomaRt,
         GenomicAlignments, GenomicRanges, GenomicFeatures, Gviz,
         IRanges, S4Vectors, GenomeInfoDb, utils, plyr,stringr, methods,
         BSgenome.Mmusculus.UCSC.mm9, googleVis
 biocViews: ImmunoOncology, GeneExpression, RNASeq, Visualization, AlternativeSplicing
 Collate: primerpcr.R main_splinter.R
 Encoding: UTF-8
-RoxygenNote: 7.1.0
+RoxygenNote: 7.3.1
 VignetteBuilder: knitr
 Suggests: txdbmaker, BiocStyle, knitr, rmarkdown

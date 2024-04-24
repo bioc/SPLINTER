@@ -350,7 +350,8 @@ extractSpliceSites <- function(df,target="SE",site='donor',
 #' @return sequence logo image
 #'
 #' @author Diana Low
-#' @import seqLogo Biostrings
+#' @import seqLogo
+#' @importFrom Biostrings readDNAStringSet consensusMatrix
 #' @export
 #'
 #' @examples
@@ -377,7 +378,7 @@ plot_seqlogo <-function(fasta_seq){
 #' @param reference_fasta vector of strings or DNAStringSet of reference splice list
 #' @return data.frame with Shapiro scores
 #' @seealso \url{http://www.softberry.com/spldb/SpliceDB.html}
-#' @import Biostrings
+#' @importFrom Biostrings readDNAStringSet PWMscoreStartingAt
 #'
 #' @author Diana Low
 #' @export
@@ -427,7 +428,7 @@ shapiroDonor<-function(reference_fasta,target_fasta){
 #' @param reference_fasta vector of strings or DNAStringSet of reference splice list
 #' @return data.frame with Shapiro scores
 #' @seealso \url{http://www.softberry.com/spldb/SpliceDB.html}
-#' @import Biostrings
+#' @importFrom Biostrings readDNAStringSet consensusMatrix PWMscoreStartingAt
 #'
 #' @author Diana Low
 #' @export
@@ -1026,7 +1027,7 @@ insertRegion <- function(subject,roi){
 #'   (1) stop1 : stop position\cr
 #'   (2) s1 : sequence truncated to first stop
 #'
-#' @import Biostrings
+#' @importFrom Biostrings vmatchPattern startIndex
 #' @keywords internal
 #'
 #' @author Diana LOW
@@ -1062,7 +1063,10 @@ findTermination <-function(s1){
 #'   (1) tt : PairwiseAlignmentsSingleSubject pairwise alignment\cr
 #'   (2) eventtypes : string detailing primary event classification\cr
 #'
-#' @import Biostrings GenomicFeatures GenomicRanges
+#' @import GenomicFeatures GenomicRanges
+#' @importFrom Biostrings translate subseq
+#' @importFrom pwalign pairwiseAlignment indel insertion deletion nmismatch
+#'             aligned unaligned pattern subject mismatchTable
 #' @export
 #' @author Diana LOW
 #'
@@ -1265,7 +1269,8 @@ eventOutcomeCompare <- function(seq1,seq2=NULL,genome,direction=TRUE,fullseq=TRU
 #'
 #' @return list of translated sequences
 #'
-#' @import Biostrings BSgenome.Mmusculus.UCSC.mm9
+#' @import BSgenome.Mmusculus.UCSC.mm9
+#' @importFrom Biostrings AA_ALPHABET translate
 #'
 #' @export
 #' @author Diana LOW

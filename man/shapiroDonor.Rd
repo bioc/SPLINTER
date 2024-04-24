@@ -37,6 +37,4 @@ donor.ss<-getSeq(bsgenome,splice_sites)
 }
 \author{
 Diana Low
-
-Diana Low
 }

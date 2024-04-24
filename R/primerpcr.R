@@ -91,6 +91,7 @@ splitPCRhit<-function(res,hitlist){
 #'   (1) DNA sequence
 #'   (2) Junction start (for primer design)
 #'
+#' @importFrom Biostrings getSeq
 #' @export
 #'
 #' @author Diana Low
@@ -129,6 +130,7 @@ getRegionDNA<-function(roi,genome,introns=FALSE){
 #' @return list of GRanges with primer locations
 #'
 #' @import GenomeInfoDb BSgenome.Mmusculus.UCSC.mm9
+#' @importFrom Biostrings reverseComplement DNAStringSet matchPattern
 #' @export
 #'
 #' @author Diana Low
