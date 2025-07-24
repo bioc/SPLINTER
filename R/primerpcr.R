@@ -129,7 +129,7 @@ getRegionDNA<-function(roi,genome,introns=FALSE){
 #'
 #' @return list of GRanges with primer locations
 #'
-#' @import GenomeInfoDb BSgenome.Mmusculus.UCSC.mm9
+#' @import Seqinfo BSgenome.Mmusculus.UCSC.mm9
 #' @importFrom Biostrings reverseComplement DNAStringSet matchPattern
 #' @export
 #'
