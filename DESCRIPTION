@@ -1,7 +1,7 @@
 Package: SPLINTER
 Type: Package
 Title: Splice Interpreter of Transcripts
-Version: 1.38.0
+Version: 1.39.0
 Date: 2025-07-24
 Authors@R: person("Diana", "Low",  email = "lowdiana@gmail.com",
         role = c("aut", "cre"))
